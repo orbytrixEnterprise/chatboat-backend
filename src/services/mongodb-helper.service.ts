@@ -2,41 +2,16 @@
 import { Model } from 'mongoose';
 
 export interface SearchOptions {
-    filterFields: Record<string, string>; // SQL field prefix -> Schema field key
-    sortFields: Record<string, string>;   // SQL sort col -> Schema sort key
+    filterFields: Record<string, string>; // Request parameter key -> Schema field key
+    sortFields: Record<string, string>;   // Sort parameter key -> Schema sort key
     defaultQuery?: Record<string, any>;   // Default query filters (e.g. status: "ACTIVE")
 }
 
 export class MongoHelperService {
 
     /**
-     * Extracts search values, regular expressions, or numbers from legacy SQL strings.
-     */
-    static extractValueFromSql(sql: string, field: string): any {
-        if (!sql) {
-            return null;
-        }
-        // Match LIKE "%value%" or LIKE 'value%'
-        const likeRegex = new RegExp(`\`${field}\`\\s+LIKE\\s+["']%?([^%'\u201d\u201c]+)%?["']`, 'i');
-        let match = sql.match(likeRegex);
-        if (match) {
-            return new RegExp(match[1].trim(), 'i');
-        }
-        // Match exact = "value" or = value
-        const eqRegex = new RegExp(`\`${field}\`\\s*=\\s*["']?([^'"\\s\\)]+)["']?`, 'i');
-        match = sql.match(eqRegex);
-        if (match) {
-            const val = match[1].trim();
-            if (/^\d+$/.test(val)) {
-                return Number(val);
-            }
-            return new RegExp('^' + val + '$', 'i');
-        }
-        return null;
-    }
-
-    /**
-     * General purpose search helper to parse legacy SQL filter/sort inputs and query MongoDB.
+     * General purpose search helper to parse filter/sort inputs and query MongoDB.
+     * Works globally for any module.
      */
     static async search<T>(
         model: Model<T>,
@@ -46,15 +21,55 @@ export class MongoHelperService {
     ): Promise<any[]> {
         const query: any = { ...options.defaultQuery };
 
-        // Parse search/filters from SQL fragments
-        for (const [sqlField, schemaField] of Object.entries(options.filterFields)) {
-            const extracted = this.extractValueFromSql(body.fieldSearch, sqlField) || 
-                              this.extractValueFromSql(body.filter, sqlField);
-            if (extracted !== null && extracted !== undefined) {
-                query[schemaField] = extracted;
+        // 1. Global text search keyword
+        if (body.search && body.search.trim().length > 0) {
+            const searchRegex = new RegExp(body.search.trim(), 'i');
+            query.$or = [
+                { name: searchRegex },
+                { emailId: searchRegex },
+                { mobileNo: searchRegex }
+            ];
+        }
+
+        // 2. Map standard request filters (e.g. body.name, body.status)
+        for (const [paramKey, schemaField] of Object.entries(options.filterFields)) {
+            const val = body[paramKey];
+            if (val !== undefined && val !== null && String(val).trim().length > 0) {
+                if (typeof val === 'string') {
+                    query[schemaField] = new RegExp(val.trim(), 'i');
+                } else {
+                    query[schemaField] = val;
+                }
             }
         }
 
+        // 3. Map advanced structured filters (e.g. body.filter grid array)
+        if (body.filter && Array.isArray(body.filter)) {
+            for (const item of body.filter) {
+                const schemaKey = options.filterFields[item.key] || item.key;
+                const val = item.value;
+                if (val !== undefined && val !== null && String(val).trim().length > 0) {
+                    switch (item.type) {
+                        case "contains":
+                            query[schemaKey] = new RegExp(val.trim(), 'i');
+                            break;
+                        case "equals":
+                            query[schemaKey] = /^\d+$/.test(val) ? Number(val) : new RegExp('^' + val.trim() + '$', 'i');
+                            break;
+                        case "start with":
+                            query[schemaKey] = new RegExp('^' + val.trim(), 'i');
+                            break;
+                        case "end with":
+                            query[schemaKey] = new RegExp(val.trim() + '$', 'i');
+                            break;
+                        default:
+                            query[schemaKey] = val;
+                    }
+                }
+            }
+        }
+
+        // 4. Execute query as COUNT or SELECT
         if (body.action === "COUNT" || body.action === "DEFAULT_SEARCH_COUNT") {
             const count = await model.countDocuments(query);
             return [{ count }];
@@ -63,14 +78,10 @@ export class MongoHelperService {
             const noOf = Number(body.noOf) || 10;
 
             const sort: any = {};
-            if (body.orderBy && body.orderBy.trim().length > 0) {
-                const parts = body.orderBy.split(",");
-                for (const part of parts) {
-                    const [col, dir] = part.trim().split(/\s+/);
-                    if (col) {
-                        const schemaSortCol = options.sortFields[col] || col;
-                        sort[schemaSortCol] = dir?.toUpperCase() === "DESC" ? -1 : 1;
-                    }
+            if (body.orderBy && Array.isArray(body.orderBy)) {
+                for (const item of body.orderBy) {
+                    const schemaSortCol = options.sortFields[item.key] || item.key;
+                    sort[schemaSortCol] = item.orderType === "desc" ? -1 : 1;
                 }
             } else {
                 sort.creatingDate = -1;

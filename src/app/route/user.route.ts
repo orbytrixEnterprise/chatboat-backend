@@ -6,7 +6,8 @@ import {
     socialLoginSanitize,
     signupSanitize,
     loginSanitize,
-    profileUpdateSanitize
+    profileUpdateSanitize,
+    userSearchSanitize
 } from "../schema";
 
 const userRoute = function (app: any, express: any) {
@@ -48,6 +49,12 @@ const userRoute = function (app: any, express: any) {
     router.post(routerPath + "UpdateProfile", [Global.isAuthorized, checkUserActive, profileUpdateSanitize, middleware(userSchema.profileUpdateSchema, "body")], (req: any, res: any) => {
         const task = (new UserController()).boot(req, res);
         return task.updateProfile();
+    });
+
+    // Search Users
+    router.post(routerPath + "Search", [Global.isAuthorized, checkUserActive, userSearchSanitize, middleware(userSchema.SearchUserSchema, "body")], (req: any, res: any) => {
+        const task = (new UserController()).boot(req, res);
+        return task.searchUser();
     });
 
     app.use(configuration.baseApiUrl, router);

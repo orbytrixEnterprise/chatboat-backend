@@ -7,7 +7,8 @@ import {
     signupUser,
     loginUser,
     profileUser,
-    updateProfileUser
+    updateProfileUser,
+    searchUser
 } from "./api";
 
 const user = {
@@ -27,7 +28,8 @@ const user = {
         "/User/Signup": signupUser,
         "/User/Login": loginUser,
         "/User/Profile": profileUser,
-        "/User/UpdateProfile": updateProfileUser
+        "/User/UpdateProfile": updateProfileUser,
+        "/User/Search": searchUser
     }
 
 };

@@ -237,4 +237,53 @@ export class UserController extends Controller {
             });
         }
     }
+
+    /**
+     * Search Users with pagination, filters and sorting.
+     */
+    async searchUser() {
+        try {
+            const body = this.req.body;
+            body.action = "COUNT";
+
+            const countData = await new UserModel().userSearch(body);
+            const total = countData.length > 0 ? countData[0].count : 0;
+
+            if (total > 0) {
+                body.action = "SELECT";
+                const data = await new UserModel().userSearch(body);
+                return this.res.status(200).send({
+                    status: 1,
+                    message: "Users retrieved successfully.",
+                    data: {
+                        data,
+                        page: body.page,
+                        noOf: body.noOf,
+                        total
+                    }
+                });
+            } else {
+                return this.res.status(200).send({
+                    status: 1,
+                    message: "No users found.",
+                    data: {
+                        data: [],
+                        page: body.page,
+                        noOf: body.noOf,
+                        total: 0
+                    }
+                });
+            }
+        } catch (err: any) {
+            applicationLogger.error("UserController searchUser", {
+                body: this.req.body,
+                error: err.toString()
+            });
+            return this.res.status(500).send({
+                status: 0,
+                message: response["100"],
+                error: err.toString()
+            });
+        }
+    }
 }

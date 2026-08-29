@@ -67,3 +67,15 @@ export const updateProfileUser = {
         responses: SwaggerService.successResponse("Profile updated successfully.", "profileOutput")
     }
 };
+
+export const searchUser = {
+    post: {
+        tags: [tags.user],
+        summary: "Authorized User Access",
+        description: "Search users with pagination, filters and sorting.",
+        operationId: "userSearch",
+        security: SwaggerService.bearerAuth(),
+        requestBody: SwaggerService.requestBody("userSearchInput"),
+        responses: SwaggerService.successResponse("Users retrieved successfully.", "userSearchOutput")
+    }
+};

@@ -1,5 +1,7 @@
+/* eslint-disable camelcase */
 import { User } from "./mongodb/user.schema";
 import { getNextSequenceValue } from "./mongodb/counter.schema";
+import { MongoHelperService } from "../../services";
 
 export class UserModel {
 
@@ -155,5 +157,42 @@ export class UserModel {
             { returnDocument: 'after' }
         ).lean();
         return updated;
+    }
+
+    /**
+     * Search users with pagination, filters and sorting.
+     */
+    async userSearch(body: any) {
+        return MongoHelperService.search(
+            User,
+            body,
+            (u) => ({
+                user_id: u.userId,
+                guest_id: u.guestId,
+                name: u.name,
+                email_id: u.emailId,
+                mobile_no: u.mobileNo,
+                user_type: u.userType,
+                status: u.status,
+                creating_date: u.creatingDate
+            }),
+            {
+                filterFields: {
+                    name: "name",
+                    emailId: "emailId",
+                    mobileNo: "mobileNo",
+                    userType: "userType",
+                    status: "status",
+                    adminId: "adminId"
+                },
+                sortFields: {
+                    name: "name",
+                    emailId: "emailId",
+                    mobileNo: "mobileNo",
+                    userType: "userType",
+                    status: "status"
+                }
+            }
+        );
     }
 }

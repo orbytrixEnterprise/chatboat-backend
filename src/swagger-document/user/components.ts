@@ -225,6 +225,156 @@ const components = {
           }
         }
       }
+    },
+
+    userSearchRow: {
+      type: 'object',
+      properties: {
+        'user_id': {
+          type: 'integer',
+          example: 101
+        },
+        'guest_id': {
+          type: 'string',
+          example: 'device-uuid-12345'
+        },
+        name: {
+          type: 'string',
+          example: 'Jane Doe'
+        },
+        'email_id': {
+          type: 'string',
+          example: 'jane@example.com'
+        },
+        'mobile_no': {
+          type: 'string',
+          example: '9876543210'
+        },
+        'user_type': {
+          type: 'string',
+          example: 'USER'
+        },
+        status: {
+          type: 'string',
+          example: 'ACTIVE'
+        },
+        'creating_date': {
+          type: 'string',
+          example: '2026-08-29T12:00:00.000Z'
+        }
+      }
+    },
+
+    userSearchInput: {
+      type: 'object',
+      required: ['page', 'noOf'],
+      properties: {
+        name: {
+          type: 'string',
+          example: 'Jane'
+        },
+        emailId: {
+          type: 'string',
+          example: 'jane@example.com'
+        },
+        mobileNo: {
+          type: 'string',
+          example: '9876543210'
+        },
+        userType: {
+          type: 'string',
+          example: 'USER'
+        },
+        status: {
+          type: 'string',
+          example: 'ACTIVE'
+        },
+        search: {
+          type: 'string',
+          example: 'Jane'
+        },
+        page: {
+          type: 'integer',
+          example: 1
+        },
+        noOf: {
+          type: 'integer',
+          example: 10
+        },
+        filter: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              key: {
+                type: 'string',
+                example: 'name'
+              },
+              type: {
+                type: 'string',
+                example: 'contains'
+              },
+              value: {
+                type: 'string',
+                example: 'Jane'
+              }
+            }
+          }
+        },
+        orderBy: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              key: {
+                type: 'string',
+                example: 'name'
+              },
+              orderType: {
+                type: 'string',
+                example: 'asc'
+              }
+            }
+          }
+        }
+      }
+    },
+
+    userSearchOutput: {
+      type: 'object',
+      properties: {
+        status: {
+          type: 'integer',
+          example: 1
+        },
+        message: {
+          type: 'string',
+          example: 'Users retrieved successfully.'
+        },
+        data: {
+          type: 'object',
+          properties: {
+            data: {
+              type: 'array',
+              items: {
+                $ref: '#/components/schemas/userSearchRow'
+              }
+            },
+            page: {
+              type: 'integer',
+              example: 1
+            },
+            noOf: {
+              type: 'integer',
+              example: 10
+            },
+            total: {
+              type: 'integer',
+              example: 1
+            }
+          }
+        }
+      }
     }
   }
 };
