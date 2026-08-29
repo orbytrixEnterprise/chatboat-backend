@@ -2,13 +2,15 @@ import { basicInfo } from './basic-info';
 import { servers } from './servers';
 import { common } from './common';
 import user from './user';
+import aiKey from './ai-key';
 
 /****************************
   SWAGGER MODULES
  ****************************/
 
 const modules = [
-    user
+    user,
+    aiKey
 ];
 
 /****************************

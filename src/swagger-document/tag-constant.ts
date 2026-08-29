@@ -1,5 +1,6 @@
 const tags = {
-    user: 'User'
+    user: 'User',
+    aikey: 'AI Key'
 };
 
 export default { ...tags };
