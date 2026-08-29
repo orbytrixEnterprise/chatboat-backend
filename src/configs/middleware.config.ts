@@ -34,14 +34,9 @@ export const checkUserActive = async (req : any, res : any, next : any) => {
       return res.status(200).send({ status: 0, message: "Unauthorized user" });
     }
 
-    const body: any = {
-      userId: userId,
-      action: "CHECK_USER_STATUS"
-    };
+    const user: any = await new UserModel().findById(userId);
 
-    const spResult: any = await new UserModel().user(body);
-
-    if (!spResult || spResult.length === 0) {
+    if (!user || user.status !== "ACTIVE") {
       return res.status(200).send({ status: 0, message: "Your account is inactive. Please contact admin." });
     }
 

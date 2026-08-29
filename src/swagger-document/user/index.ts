@@ -2,13 +2,12 @@ import tags from "../tag-constant";
 import components from "./components";
 
 import {
+    guestUser,
+    socialLoginUser,
+    signupUser,
     loginUser,
-    selectByIdUser,
-    searchUser,
-    passwordUpdateUser,
-    adminPasswordUpdateUser,
-    forgotPasswordUser,
-    resetPasswordUser
+    profileUser,
+    updateProfileUser
 } from "./api";
 
 const user = {
@@ -18,18 +17,17 @@ const user = {
     tags: [
         {
             name: tags.user,
-            description: "User & Company Management API"
+            description: "User Authentication & Management API"
         }
     ],
 
     paths: {
+        "/User/Guest": guestUser,
+        "/User/SocialLogin": socialLoginUser,
+        "/User/Signup": signupUser,
         "/User/Login": loginUser,
-        "/User/SelectById/{userId}": selectByIdUser,
-        "/User/Search": searchUser,
-        "/User/PasswordUpdate": passwordUpdateUser,
-        "/User/AdminPasswordUpdate": adminPasswordUpdateUser,
-        "/User/ForgotPassword": forgotPasswordUser,
-        "/User/ResetPassword": resetPasswordUser
+        "/User/Profile": profileUser,
+        "/User/UpdateProfile": updateProfileUser
     }
 
 };

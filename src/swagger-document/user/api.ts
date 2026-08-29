@@ -1,92 +1,69 @@
 import tags from "../tag-constant";
-import response from '../../configs/response';
 import { SwaggerService } from "../common";
+
+export const guestUser = {
+    post: {
+        tags: [tags.user],
+        summary: "Guest Access",
+        description: "Register or initialize a guest user session using a guestId.",
+        operationId: "userGuest",
+        requestBody: SwaggerService.requestBody("guestInput"),
+        responses: SwaggerService.successResponse("Guest session initialized successfully.", "authOutput")
+    }
+};
+
+export const socialLoginUser = {
+    post: {
+        tags: [tags.user],
+        summary: "Social Access",
+        description: "Login or signup via Google/Apple, optionally linking with a legacy guest session.",
+        operationId: "userSocialLogin",
+        requestBody: SwaggerService.requestBody("socialLoginInput"),
+        responses: SwaggerService.successResponse("Social login completed successfully.", "authOutput")
+    }
+};
+
+export const signupUser = {
+    post: {
+        tags: [tags.user],
+        summary: "Manual Access",
+        description: "Sign up manually with name, email, password, and optionally a guestId to link.",
+        operationId: "userSignup",
+        requestBody: SwaggerService.requestBody("signupInput"),
+        responses: SwaggerService.successResponse("Account created successfully.", "authOutput")
+    }
+};
 
 export const loginUser = {
     post: {
         tags: [tags.user],
-        summary: "Public Access",
-        description: "User login.",
+        summary: "Manual Access",
+        description: "Login manually with email address and password.",
         operationId: "userLogin",
         requestBody: SwaggerService.requestBody("loginInput"),
-        responses: SwaggerService.successResponse(response["202"], "loginOutput")
+        responses: SwaggerService.successResponse("Logged in successfully.", "authOutput")
     }
 };
 
-export const selectByIdUser = {
+export const profileUser = {
     get: {
         tags: [tags.user],
         summary: "Authorized User Access",
-        description: "Get user details by id.",
-        operationId: "userSelectById",
+        description: "Get logged-in user profile details.",
+        operationId: "userProfile",
         security: SwaggerService.bearerAuth(),
-        parameters: SwaggerService.parameters([
-            {
-                name: "userId",
-                in: "path",
-                type: "integer",
-                required: true,
-                example: 1
-            }
-        ]),
-        responses: SwaggerService.successResponse(response["225"], "userSelectByIdOutput")
+        responses: SwaggerService.successResponse("Profile retrieved successfully.", "profileOutput")
     }
 };
 
-export const searchUser = {
+export const updateProfileUser = {
     post: {
         tags: [tags.user],
         summary: "Authorized User Access",
-        description: "Search users with pagination, filters and sorting.",
-        operationId: "userSearch",
+        description: "Update logged-in user profile details.",
+        operationId: "userUpdateProfile",
         security: SwaggerService.bearerAuth(),
-        requestBody: SwaggerService.requestBody("userSearchInput"),
-        responses: SwaggerService.successResponse(response["225"], "userSearchOutput")
-    }
-};
-
-export const passwordUpdateUser = {
-    put: {
-        tags: [tags.user],
-        summary: "Authorized User Access",
-        description: "Update password of the logged-in user.",
-        operationId: "userPasswordUpdate",
-        security: SwaggerService.bearerAuth(),
-        requestBody: SwaggerService.requestBody("userPasswordUpdateInput"),
-        responses: SwaggerService.successResponse(response["203"], "userPasswordUpdateOutput")
-    }
-};
-
-export const adminPasswordUpdateUser = {
-    put: {
-        tags: [tags.user],
-        summary: "Admin Authorized User Access",
-        description: "Admin updates password of any user.",
-        operationId: "adminPasswordUpdate",
-        security: SwaggerService.bearerAuth(),
-        requestBody: SwaggerService.requestBody("adminPasswordUpdateInput"),
-        responses: SwaggerService.successResponse(response["203"], "adminPasswordUpdateOutput")
-    }
-};
-
-export const forgotPasswordUser = {
-    post: {
-        tags: [tags.user],
-        summary: "Public Access",
-        description: "Request a forgot password email link.",
-        operationId: "userForgotPassword",
-        requestBody: SwaggerService.requestBody("userForgotPasswordInput"),
-        responses: SwaggerService.successResponse(response["236"], "userForgotPasswordOutput")
-    }
-};
-
-export const resetPasswordUser = {
-    post: {
-        tags: [tags.user],
-        summary: "Public Access",
-        description: "Reset password using token received via email.",
-        operationId: "userResetPassword",
-        requestBody: SwaggerService.requestBody("userResetPasswordInput"),
-        responses: SwaggerService.successResponse(response["203"], "userResetPasswordOutput")
+        requestBody: SwaggerService.requestBody("profileUpdateInput"),
+        responses: SwaggerService.successResponse("Profile updated successfully.", "profileOutput")
     }
 };
