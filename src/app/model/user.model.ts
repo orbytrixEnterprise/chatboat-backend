@@ -140,7 +140,8 @@ export class UserModel {
                     "u`.`email_id": "emailId",
                     "u`.`mobile_no": "mobileNo",
                     "u`.`user_type": "userType",
-                    "u`.`status": "status"
+                    "u`.`status": "status",
+                    "u`.`admin_id": "adminId"
                 },
                 sortFields: {
                     name: "name",

@@ -10,9 +10,9 @@ export interface SearchOptions {
 export class MongoHelperService {
 
     /**
-     * Extracts a search value/regex from SQL LIKE or EQUAL strings built by the controller.
+     * Extracts search values, regular expressions, or numbers from legacy SQL strings.
      */
-    static extractRegexFromSql(sql: string, field: string): RegExp | null {
+    static extractValueFromSql(sql: string, field: string): any {
         if (!sql) {
             return null;
         }
@@ -22,11 +22,15 @@ export class MongoHelperService {
         if (match) {
             return new RegExp(match[1].trim(), 'i');
         }
-        // Match exact = "value"
-        const eqRegex = new RegExp(`\`${field}\`\\s*=\\s*["']([^'"]+)["']`, 'i');
+        // Match exact = "value" or = value
+        const eqRegex = new RegExp(`\`${field}\`\\s*=\\s*["']?([^'"\\s\\)]+)["']?`, 'i');
         match = sql.match(eqRegex);
         if (match) {
-            return new RegExp('^' + match[1].trim() + '$', 'i');
+            const val = match[1].trim();
+            if (/^\d+$/.test(val)) {
+                return Number(val);
+            }
+            return new RegExp('^' + val + '$', 'i');
         }
         return null;
     }
@@ -44,25 +48,11 @@ export class MongoHelperService {
 
         // Parse search/filters from SQL fragments
         for (const [sqlField, schemaField] of Object.entries(options.filterFields)) {
-            const regex = this.extractRegexFromSql(body.fieldSearch, sqlField) || 
-                          this.extractRegexFromSql(body.filter, sqlField);
-            if (regex) {
-                query[schemaField] = regex;
+            const extracted = this.extractValueFromSql(body.fieldSearch, sqlField) || 
+                              this.extractValueFromSql(body.filter, sqlField);
+            if (extracted !== null && extracted !== undefined) {
+                query[schemaField] = extracted;
             }
-        }
-
-        // Handle specific number equals filter cases (e.g. shop_id = 12)
-        if (body.shopId && options.filterFields["p`.`shop_id"]) {
-            query[options.filterFields["p`.`shop_id"]] = Number(body.shopId);
-        }
-        if (body.vendorId && options.filterFields["p`.`vendor_id"]) {
-            query[options.filterFields["p`.`vendor_id"]] = Number(body.vendorId);
-        }
-        if (body.purchaseId && options.filterFields["pd`.`purchase_id"]) {
-            query[options.filterFields["pd`.`purchase_id"]] = Number(body.purchaseId);
-        }
-        if (body.purchaseId && options.filterFields["pp`.`purchase_id"]) {
-            query[options.filterFields["pp`.`purchase_id"]] = Number(body.purchaseId);
         }
 
         if (body.action === "COUNT" || body.action === "DEFAULT_SEARCH_COUNT") {
