@@ -5,3 +5,4 @@ export * from './form.service';
 export * from './filter.service';
 export * from './template.service';
 export * from './network-helper.service';
+export * from './mongodb-helper.service';

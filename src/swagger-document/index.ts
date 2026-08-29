@@ -1,26 +1,18 @@
 import { basicInfo } from './basic-info';
 import { servers } from './servers';
 import { common } from './common';
-import upload from './upload';
 import user from './user';
-import purchase from './purchase';
-import purchaseDetail from './purchase-detail';
-import purchasePayment from './purchase-payment';
 
 /****************************
- SWAGGER MODULES
+  SWAGGER MODULES
  ****************************/
 
 const modules = [
-    upload,
-    user,
-    purchase,
-    purchaseDetail,
-    purchasePayment
+    user
 ];
 
 /****************************
- SWAGGER DOCUMENT
+  SWAGGER DOCUMENT
  ****************************/
 
 export const swaggerDocument = {

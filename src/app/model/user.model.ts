@@ -1,6 +1,7 @@
 /* eslint-disable camelcase */
 import { User } from "./mongodb/user.schema";
 import { getNextSequenceValue } from "./mongodb/counter.schema";
+import { MongoHelperService } from "../../services";
 
 function mapUserToSql(user: any) {
     if (!user) {
@@ -20,25 +21,6 @@ function mapUserToSql(user: any) {
         creating_date: user.creatingDate,
         updating_date: user.updatingDate
     };
-}
-
-function extractRegexFromSql(sql: string, field: string): RegExp | null {
-    if (!sql) {
-        return null;
-    }
-    // Match LIKE "%value%"
-    const likeRegex = new RegExp(`\`${field}\`\\s+LIKE\\s+["']%([^%']+)%["']`, 'i');
-    let match = sql.match(likeRegex);
-    if (match) {
-        return new RegExp(match[1].trim(), 'i');
-    }
-    // Match = "value"
-    const eqRegex = new RegExp(`\`${field}\`\\s*=\\s*["']([^'"]+)["']`, 'i');
-    match = sql.match(eqRegex);
-    if (match) {
-        return new RegExp('^' + match[1].trim() + '$', 'i');
-    }
-    return null;
 }
 
 export class UserModel {
@@ -148,69 +130,26 @@ export class UserModel {
     }
 
     async userSearch(body: any) {
-        const query: any = {};
-
-        // Extract filters from SQL strings built by controller
-        const nameFilter = extractRegexFromSql(body.fieldSearch, "u`.`name") || extractRegexFromSql(body.filter, "u`.`name");
-        if (nameFilter) {
-            query.name = nameFilter;
-        }
-
-        const emailFilter = extractRegexFromSql(body.fieldSearch, "u`.`email_id") || extractRegexFromSql(body.filter, "u`.`email_id");
-        if (emailFilter) {
-            query.emailId = emailFilter;
-        }
-
-        const mobileFilter = extractRegexFromSql(body.fieldSearch, "u`.`mobile_no") || extractRegexFromSql(body.filter, "u`.`mobile_no");
-        if (mobileFilter) {
-            query.mobileNo = mobileFilter;
-        }
-
-        const userTypeFilter = extractRegexFromSql(body.fieldSearch, "u`.`user_type") || extractRegexFromSql(body.filter, "u`.`user_type");
-        if (userTypeFilter) {
-            query.userType = userTypeFilter;
-        }
-
-        const statusFilter = extractRegexFromSql(body.fieldSearch, "u`.`status") || extractRegexFromSql(body.filter, "u`.`status");
-        if (statusFilter) {
-            query.status = statusFilter;
-        }
-
-        if (body.action === "COUNT") {
-            const count = await User.countDocuments(query);
-            return [{ count }];
-        } else {
-            const page = Number(body.page) || 1;
-            const noOf = Number(body.noOf) || 10;
-
-            const sort: any = {};
-            if (body.orderBy && body.orderBy.trim().length > 0) {
-                const parts = body.orderBy.split(",");
-                for (const part of parts) {
-                    const [col, dir] = part.trim().split(/\s+/);
-                    if (col) {
-                        const colMap: Record<string, string> = {
-                            name: "name",
-                            email_id: "emailId",
-                            mobile_no: "mobileNo",
-                            user_type: "userType",
-                            status: "status"
-                        };
-                        const mongoCol = colMap[col] || col;
-                        sort[mongoCol] = dir?.toUpperCase() === "DESC" ? -1 : 1;
-                    }
+        return MongoHelperService.search(
+            User,
+            body,
+            mapUserToSql,
+            {
+                filterFields: {
+                    "u`.`name": "name",
+                    "u`.`email_id": "emailId",
+                    "u`.`mobile_no": "mobileNo",
+                    "u`.`user_type": "userType",
+                    "u`.`status": "status"
+                },
+                sortFields: {
+                    name: "name",
+                    email_id: "emailId",
+                    mobile_no: "mobileNo",
+                    user_type: "userType",
+                    status: "status"
                 }
-            } else {
-                sort.creatingDate = -1;
             }
-
-            const users = await User.find(query)
-                .sort(sort)
-                .skip((page - 1) * noOf)
-                .limit(noOf)
-                .lean();
-
-            return users.map(mapUserToSql);
-        }
+        );
     }
 }
