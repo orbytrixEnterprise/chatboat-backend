@@ -1,9 +1,8 @@
 /* eslint-disable camelcase */
 /* eslint-disable @typescript-eslint/naming-convention */
 import { Controller } from './controller';
-import { UserModel } from '../model';
-import response from '../../configs/response';
-import { applicationLogger, configuration, Global } from '../../configs';
+import { UserService } from '../services';
+import { applicationLogger, configuration, Global, response } from '../../configs';
 
 export class UserController extends Controller {
 
@@ -42,24 +41,13 @@ export class UserController extends Controller {
     async guest() {
         try {
             const { guestId } = this.req.body;
-            const user = await new UserModel().createOrGetGuest(guestId);
+            const user = await new UserService().createOrGetGuest(guestId);
             const tokenResult = await this.generateUserTokens(user);
 
-            return this.res.status(200).send({
-                status: 1,
-                message: "Guest session initialized successfully.",
-                data: tokenResult
-            });
+            return this.res.status(200).send({ status: 1, message: "Guest session initialized successfully.", data: tokenResult });
         } catch (err: any) {
-            applicationLogger.error("UserController guest", {
-                body: this.req.body,
-                error: err.toString()
-            });
-            return this.res.status(500).send({
-                status: 0,
-                message: response["100"],
-                error: err.toString()
-            });
+            applicationLogger.error("UserController guest", { body: this.req.body, error: err.toString() });
+            return this.res.status(500).send({ status: 0, message: response["100"], error: err.toString() });
         }
     }
 
@@ -69,24 +57,13 @@ export class UserController extends Controller {
     async socialLogin() {
         try {
             const { provider, socialId, emailId, name, guestId } = this.req.body;
-            const user = await new UserModel().registerOrLinkSocial(provider, socialId, emailId, name, guestId);
+            const user = await new UserService().registerOrLinkSocial(provider, socialId, emailId, name, guestId);
             const tokenResult = await this.generateUserTokens(user);
 
-            return this.res.status(200).send({
-                status: 1,
-                message: "Social login completed successfully.",
-                data: tokenResult
-            });
+            return this.res.status(200).send({ status: 1, message: "Social login completed successfully.", data: tokenResult });
         } catch (err: any) {
-            applicationLogger.error("UserController socialLogin", {
-                body: this.req.body,
-                error: err.toString()
-            });
-            return this.res.status(500).send({
-                status: 0,
-                message: response["100"],
-                error: err.toString()
-            });
+            applicationLogger.error("UserController socialLogin", { body: this.req.body, error: err.toString() });
+            return this.res.status(500).send({ status: 0, message: response["100"], error: err.toString() });
         }
     }
 
@@ -98,23 +75,13 @@ export class UserController extends Controller {
             const body = this.req.body;
             body.password = await Global.encrypt(body.password);
 
-            const user = await new UserModel().manualSignup(body);
+            const user = await new UserService().manualSignup(body);
             const tokenResult = await this.generateUserTokens(user);
 
-            return this.res.status(200).send({
-                status: 1,
-                message: "Account created successfully.",
-                data: tokenResult
-            });
+            return this.res.status(200).send({ status: 1, message: "Account created successfully.", data: tokenResult });
         } catch (err: any) {
-            applicationLogger.error("UserController signup", {
-                body: this.req.body,
-                error: err.toString()
-            });
-            return this.res.status(200).send({
-                status: 0,
-                message: err.message || "Failed to create account."
-            });
+            applicationLogger.error("UserController signup", { body: this.req.body, error: err.toString() });
+            return this.res.status(200).send({ status: 0, message: err.message || "Failed to create account." });
         }
     }
 
@@ -126,30 +93,16 @@ export class UserController extends Controller {
             const { emailId, password } = this.req.body;
             const encryptedPassword = await Global.encrypt(password);
 
-            const user = await new UserModel().manualLogin(emailId, encryptedPassword);
+            const user = await new UserService().manualLogin(emailId, encryptedPassword);
             if (!user) {
-                return this.res.status(200).send({
-                    status: 0,
-                    message: "Invalid email address or password."
-                });
+                return this.res.status(200).send({ status: 0, message: "Invalid email address or password." });
             }
 
             const tokenResult = await this.generateUserTokens(user);
-            return this.res.status(200).send({
-                status: 1,
-                message: "Logged in successfully.",
-                data: tokenResult
-            });
+            return this.res.status(200).send({ status: 1, message: "Logged in successfully.", data: tokenResult });
         } catch (err: any) {
-            applicationLogger.error("UserController login", {
-                body: this.req.body,
-                error: err.toString()
-            });
-            return this.res.status(500).send({
-                status: 0,
-                message: response["100"],
-                error: err.toString()
-            });
+            applicationLogger.error("UserController login", { body: this.req.body, error: err.toString() });
+            return this.res.status(500).send({ status: 0, message: response["100"], error: err.toString() });
         }
     }
 
@@ -159,39 +112,16 @@ export class UserController extends Controller {
     async profile() {
         try {
             const userId = await Global.getTokenValue(this.req, "id");
-            const user = await new UserModel().findById(userId);
+            const user = await new UserService().findById(userId);
 
             if (!user) {
-                return this.res.status(200).send({
-                    status: 0,
-                    message: "User profile not found."
-                });
+                return this.res.status(200).send({ status: 0, message: "User profile not found." });
             }
 
-            return this.res.status(200).send({
-                status: 1,
-                message: "Profile retrieved successfully.",
-                data: {
-                    userId: user.userId,
-                    guestId: user.guestId,
-                    name: user.name,
-                    emailId: user.emailId,
-                    mobileNo: user.mobileNo,
-                    userType: user.userType,
-                    address: user.address,
-                    profileImage: user.profileImage,
-                    status: user.status
-                }
-            });
+            return this.res.status(200).send({ status: 1, message: "Profile retrieved successfully.", data: { userId: user.userId, guestId: user.guestId, name: user.name, emailId: user.emailId, mobileNo: user.mobileNo, userType: user.userType, address: user.address, profileImage: user.profileImage, status: user.status } });
         } catch (err: any) {
-            applicationLogger.error("UserController profile", {
-                error: err.toString()
-            });
-            return this.res.status(500).send({
-                status: 0,
-                message: response["100"],
-                error: err.toString()
-            });
+            applicationLogger.error("UserController profile", { error: err.toString() });
+            return this.res.status(500).send({ status: 0, message: response["100"], error: err.toString() });
         }
     }
 
@@ -201,40 +131,16 @@ export class UserController extends Controller {
     async updateProfile() {
         try {
             const userId = await Global.getTokenValue(this.req, "id");
-            const updatedUser = await new UserModel().updateProfile(userId, this.req.body);
+            const updatedUser = await new UserService().updateProfile(userId, this.req.body);
 
             if (!updatedUser) {
-                return this.res.status(200).send({
-                    status: 0,
-                    message: "Failed to update profile."
-                });
+                return this.res.status(200).send({ status: 0, message: "Failed to update profile." });
             }
 
-            return this.res.status(200).send({
-                status: 1,
-                message: "Profile updated successfully.",
-                data: {
-                    userId: updatedUser.userId,
-                    guestId: updatedUser.guestId,
-                    name: updatedUser.name,
-                    emailId: updatedUser.emailId,
-                    mobileNo: updatedUser.mobileNo,
-                    userType: updatedUser.userType,
-                    address: updatedUser.address,
-                    profileImage: updatedUser.profileImage,
-                    status: updatedUser.status
-                }
-            });
+            return this.res.status(200).send({ status: 1, message: "Profile updated successfully.", data: { userId: updatedUser.userId, guestId: updatedUser.guestId, name: updatedUser.name, emailId: updatedUser.emailId, mobileNo: updatedUser.mobileNo, userType: updatedUser.userType, address: updatedUser.address, profileImage: updatedUser.profileImage, status: updatedUser.status } });
         } catch (err: any) {
-            applicationLogger.error("UserController updateProfile", {
-                body: this.req.body,
-                error: err.toString()
-            });
-            return this.res.status(500).send({
-                status: 0,
-                message: response["100"],
-                error: err.toString()
-            });
+            applicationLogger.error("UserController updateProfile", { body: this.req.body, error: err.toString() });
+            return this.res.status(500).send({ status: 0, message: response["100"], error: err.toString() });
         }
     }
 
@@ -246,44 +152,19 @@ export class UserController extends Controller {
             const body = this.req.body;
             body.action = "COUNT";
 
-            const countData = await new UserModel().userSearch(body);
+            const countData = await new UserService().userSearch(body);
             const total = countData.length > 0 ? countData[0].count : 0;
 
             if (total > 0) {
                 body.action = "SELECT";
-                const data = await new UserModel().userSearch(body);
-                return this.res.status(200).send({
-                    status: 1,
-                    message: "Users retrieved successfully.",
-                    data: {
-                        data,
-                        page: body.page,
-                        noOf: body.noOf,
-                        total
-                    }
-                });
+                const data = await new UserService().userSearch(body);
+                return this.res.status(200).send({ status: 1, message: "Users retrieved successfully.", data: { data, page: body.page, noOf: body.noOf, total } });
             } else {
-                return this.res.status(200).send({
-                    status: 1,
-                    message: "No users found.",
-                    data: {
-                        data: [],
-                        page: body.page,
-                        noOf: body.noOf,
-                        total: 0
-                    }
-                });
+                return this.res.status(200).send({ status: 1, message: "No users found.", data: { data: [], page: body.page, noOf: body.noOf, total: 0 } });
             }
         } catch (err: any) {
-            applicationLogger.error("UserController searchUser", {
-                body: this.req.body,
-                error: err.toString()
-            });
-            return this.res.status(500).send({
-                status: 0,
-                message: response["100"],
-                error: err.toString()
-            });
+            applicationLogger.error("UserController searchUser", { body: this.req.body, error: err.toString() });
+            return this.res.status(500).send({ status: 0, message: response["100"], error: err.toString() });
         }
     }
 }

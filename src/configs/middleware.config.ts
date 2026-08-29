@@ -1,6 +1,6 @@
 import { applicationLogger, Global } from './';
-import response from './response';
-import { UserModel } from '../app/model';
+import { response } from './response';
+import { UserService } from '../app/services';
 
 export const middleware = (schema: any, property: any) => {
     return async (req: any, res: any, next: any) => {
@@ -34,7 +34,7 @@ export const checkUserActive = async (req : any, res : any, next : any) => {
       return res.status(200).send({ status: 0, message: "Unauthorized user" });
     }
 
-    const user: any = await new UserModel().findById(userId);
+    const user: any = await new UserService().findById(userId);
 
     if (!user || user.status !== "ACTIVE") {
       return res.status(200).send({ status: 0, message: "Your account is inactive. Please contact admin." });

@@ -1,4 +1,4 @@
-const response: Record<string, string> = {
+export const response: Record<string, string> = {
     "100": "Internal server error.",
     "101": "Issue on fetch data. Try after some time.",
     "102": "No data found",
@@ -51,5 +51,3 @@ const response: Record<string, string> = {
     "605": "Purchase payment not found.",
     "607": "Purchase payment list fetched successfully."
 };
-
-export default response;

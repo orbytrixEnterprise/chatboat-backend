@@ -1,9 +1,8 @@
 /* eslint-disable camelcase */
-import { User } from "./mongodb/user.schema";
-import { getNextSequenceValue } from "./mongodb/counter.schema";
+import { User, getNextSequenceValue } from "../model";
 import { MongoHelperService } from "../../services";
 
-export class UserModel {
+export class UserService {
 
     /**
      * Creates or gets a temporary guest user.

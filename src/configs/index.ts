@@ -5,3 +5,4 @@ export * from './global.config';
 export * from './logger.config';
 export * from './middleware.config';
 export * from './mongodb.config';
+export * from './response';

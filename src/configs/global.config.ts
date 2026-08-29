@@ -3,7 +3,7 @@
  ****************************/
 import jwt from 'jsonwebtoken';
 import { configuration, applicationLogger } from '.';
-import response from './response';
+import { response } from './response';
 import { FieldHelperService } from '../services';
 
 export class Global {
