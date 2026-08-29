@@ -5,7 +5,7 @@
 import environmentVariable from './environment.config';
 export const configuration: any = {
     mongodbUri: environmentVariable.mongodbUri,
-    securityToken: 'skjfsoakgnasdlkgnsdalgnsdalda ',
+    securityToken: process.env.SECURITY_TOKEN || 'skjfsoakgnasdlkgnsdalgnsdalda ',
     serverPort: environmentVariable.serverPort,
     forgotPasswordTokenExpiry: 600, // Note: in seconds! (10 minutes) ,
     tokenExpiry: 1800, // Note: in seconds! (30 minutes)    
