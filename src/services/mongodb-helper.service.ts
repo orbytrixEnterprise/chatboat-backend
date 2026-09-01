@@ -5,6 +5,7 @@ export interface SearchOptions {
     filterFields: Record<string, string>; // Request parameter key -> Schema field key
     sortFields: Record<string, string>;   // Sort parameter key -> Schema sort key
     defaultQuery?: Record<string, any>;   // Default query filters (e.g. status: "ACTIVE")
+    populate?: string | any;              // Optional populates (string or array)
 }
 
 export class MongoHelperService {
@@ -87,11 +88,16 @@ export class MongoHelperService {
                 sort.creatingDate = -1;
             }
 
-            const results = await model.find(query)
+            let queryExec = model.find(query)
                 .sort(sort)
                 .skip((page - 1) * noOf)
-                .limit(noOf)
-                .lean();
+                .limit(noOf);
+
+            if (options.populate) {
+                queryExec = queryExec.populate(options.populate);
+            }
+
+            const results = await queryExec.lean();
 
             return results.map(mapper);
         }

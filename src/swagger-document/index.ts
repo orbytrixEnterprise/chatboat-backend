@@ -3,14 +3,20 @@ import { servers } from './servers';
 import { common } from './common';
 import user from './user';
 import aiKey from './ai-key';
+import character from './character';
+import upload from './upload';
+import category from './category';
 
 /****************************
   SWAGGER MODULES
  ****************************/
 
 const modules = [
+    upload,
     user,
-    aiKey
+    aiKey,
+    category,
+    character
 ];
 
 /****************************
