@@ -4,6 +4,7 @@ const tags = {
     aikey: 'AI Key',
     character: 'Character',
     category: 'Category',
+    chat: 'Chat'
 };
 
 export default { ...tags };

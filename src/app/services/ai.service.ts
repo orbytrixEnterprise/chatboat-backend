@@ -14,7 +14,7 @@ export class AIService {
     /**
      * Sends messages to the available AI models, automatically failing over to backup keys/providers if one fails.
      */
-    async chat(messages: ChatMessage[]): Promise<string> {
+    async chat(messages: ChatMessage[], options?: { temperature?: number; maxTokens?: number }): Promise<string> {
         // 1. Fetch active keys ordered by priority (lower number first)
         const keys = await AiKey.find({ status: "ACTIVE" })
             .sort({ priority: 1, failCount: 1 })
@@ -39,7 +39,7 @@ export class AIService {
 
             for (const keyConfig of envKeys) {
                 try {
-                    return await this.executeChatRequest(keyConfig, messages);
+                    return await this.executeChatRequest(keyConfig, messages, options);
                 } catch (err: any) {
                     applicationLogger.error("AIService failed fallback env key", {
                         provider: keyConfig.provider,
@@ -54,7 +54,7 @@ export class AIService {
         // 3. Loop through database keys and try to request
         for (const keyConfig of keys) {
             try {
-                const responseText = await this.executeChatRequest(keyConfig, messages);
+                const responseText = await this.executeChatRequest(keyConfig, messages, options);
 
                 // Update last used date and reset fail count upon success
                 await AiKey.updateOne(
@@ -93,16 +93,24 @@ export class AIService {
     /**
      * Executes API call for specific provider and model.
      */
-    private async executeChatRequest(keyConfig: any, messages: ChatMessage[]): Promise<string> {
+    private async executeChatRequest(keyConfig: any, messages: ChatMessage[], options?: { temperature?: number; maxTokens?: number }): Promise<string> {
         const { provider, apiKey, model, baseUrl } = keyConfig;
 
         if (provider === "grok" || provider === "openai") {
             const url = baseUrl || (provider === "grok" ? "https://api.x.ai/v1/chat/completions" : "https://api.openai.com/v1/chat/completions");
 
-            const response = await axios.post(url, {
+            const payload: any = {
                 model: model,
                 messages: messages
-            }, {
+            };
+            if (options?.temperature !== undefined) {
+                payload.temperature = options.temperature;
+            }
+            if (options?.maxTokens !== undefined) {
+                payload.max_tokens = options.maxTokens;
+            }
+
+            const response = await axios.post(url, payload, {
                 headers: {
                     "Authorization": `Bearer ${apiKey}`,
                     "Content-Type": "application/json"
@@ -121,9 +129,20 @@ export class AIService {
                 parts: [{ text: msg.content }]
             }));
 
-            const response = await axios.post(url, {
+            const payload: any = {
                 contents: contents
-            }, {
+            };
+            if (options?.temperature !== undefined || options?.maxTokens !== undefined) {
+                payload.generationConfig = {};
+                if (options?.temperature !== undefined) {
+                    payload.generationConfig.temperature = options.temperature;
+                }
+                if (options?.maxTokens !== undefined) {
+                    payload.generationConfig.maxOutputTokens = options.maxTokens;
+                }
+            }
+
+            const response = await axios.post(url, payload, {
                 headers: {
                     "Content-Type": "application/json"
                 },
@@ -141,12 +160,17 @@ export class AIService {
                 content: msg.content
             }));
 
-            const response = await axios.post(url, {
+            const payload: any = {
                 model: model,
-                max_tokens: 4096,
+                max_tokens: options?.maxTokens || 4096,
                 system: systemMessage,
                 messages: userAssistantMessages
-            }, {
+            };
+            if (options?.temperature !== undefined) {
+                payload.temperature = options.temperature;
+            }
+
+            const response = await axios.post(url, payload, {
                 headers: {
                     "x-api-key": apiKey,
                     "anthropic-version": "2023-06-01",

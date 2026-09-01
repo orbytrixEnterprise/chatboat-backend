@@ -6,6 +6,7 @@ import aiKey from './ai-key';
 import character from './character';
 import upload from './upload';
 import category from './category';
+import chat from './chat';
 
 /****************************
   SWAGGER MODULES
@@ -16,7 +17,8 @@ const modules = [
     user,
     aiKey,
     category,
-    character
+    character,
+    chat
 ];
 
 /****************************
