@@ -1,16 +1,21 @@
 import { configuration } from "../configs";
 import { NetworkHelperService } from "../services";
 
-const localIp = NetworkHelperService.getLocalIp();
-const localUrl = `http://${localIp}:${configuration.serverPort}${configuration.baseApiUrl}`;
+const serverType = (process.env.NODE_ENV || "staging").trim();
+const serverList = [];
 
-export const servers = [
-    {
+if (serverType === "development") {
+    const localIp = NetworkHelperService.getLocalIp();
+    const localUrl = `http://${localIp}:${configuration.serverPort}${configuration.baseApiUrl}`;
+    serverList.push({
         url: localUrl,
-        description: "Always Global Talent Local API"
-    },
-    {
-        url: configuration.swaggerUrl,
-        description: "Always Global Talent Server API"
-    }
-];
+        description: "chat boat local API"
+    });
+}
+
+serverList.push({
+    url: configuration.swaggerUrl,
+    description: "chat boat server API"
+});
+
+export const servers = serverList;

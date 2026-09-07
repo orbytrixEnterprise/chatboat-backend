@@ -1,14 +1,14 @@
 module.exports = {
     apps: [
         {
-            name: "tailor-pro-node-production",
+            name: "chatboat-backend-production",
             script: "src/app.js",
             env: {
                 NODE_ENV: "production"
             }
         },
         {
-            name: "tailor-pro-node-staging",
+            name: "chatboat-backend-staging",
             script: "src/app.js",
             env: {
                 NODE_ENV: "staging"

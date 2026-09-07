@@ -3,19 +3,19 @@ import { applicationLogger, configuration, Global } from './';
 import { User, getNextSequenceValue } from '../app/model';
 
 export const seedDefaultAdmin = async (): Promise<void> => {
-    const shouldSeed = false; // Set to true only in secure production environments
+    const shouldSeed = true; // Set to true only in secure production environments
     if (!shouldSeed) {
         return;
     }
     try {
-        const adminEmail = "dummyadmin@example.com";
+        const adminEmail = "admin@gmail.com";
         const existingAdmin = await User.findOne({ emailId: adminEmail, userType: "ADMIN" });
         if (!existingAdmin) {
             const userId = await getNextSequenceValue("userId");
-            const encryptedPassword = await Global.encrypt("dummypassword");
+            const encryptedPassword = await Global.encrypt("orbytrix@2026");
             await User.create({
                 userId,
-                name: "Dummy Admin",
+                name: "Orbytrix Admin",
                 emailId: adminEmail,
                 password: encryptedPassword,
                 userType: "ADMIN",
