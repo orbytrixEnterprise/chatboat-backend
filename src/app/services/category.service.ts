@@ -70,6 +70,7 @@ export class CategoryService {
             Category,
             body,
             (c) => ({
+                _id: c._id,
                 category_id: c.categoryId,
                 name: c.name,
                 priority: c.priority,
