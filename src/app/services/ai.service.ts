@@ -98,9 +98,13 @@ export class AIService {
 
         if (provider === "grok" || provider === "openai" || provider === "openrouter" || provider === "groq") {
             let defaultUrl = "https://api.openai.com/v1/chat/completions";
-            if (provider === "grok") defaultUrl = "https://api.x.ai/v1/chat/completions";
-            else if (provider === "openrouter") defaultUrl = "https://openrouter.ai/api/v1/chat/completions";
-            else if (provider === "groq") defaultUrl = "https://api.groq.com/openai/v1/chat/completions";
+            if (provider === "grok") {
+                defaultUrl = "https://api.x.ai/v1/chat/completions";
+            } else if (provider === "openrouter") {
+                defaultUrl = "https://openrouter.ai/api/v1/chat/completions";
+            } else if (provider === "groq") {
+                defaultUrl = "https://api.groq.com/openai/v1/chat/completions";
+            }
 
             const url = baseUrl || defaultUrl;
 
