@@ -5,8 +5,8 @@ import { FieldHelperService } from "../../services/field-helper.service";
 export const aiKeySchema = {
 
     addSchema: joi.object({
-        provider: joi.string().trim().valid("grok", "openai", "gemini", "claude").required().messages({
-            "any.only": `Provider must be grok, openai, gemini, or claude.`,
+        provider: joi.string().trim().valid("grok", "openai", "gemini", "claude", "openrouter", "groq").required().messages({
+            "any.only": `Provider must be grok, openai, gemini, claude, openrouter, or groq.`,
             "any.required": `Provider is required.`
         }),
         apiKey: joi.string().trim().required().messages({
@@ -26,8 +26,8 @@ export const aiKeySchema = {
         keyId: joi.number().integer().required().messages({
             "any.required": `Key ID is required.`
         }),
-        provider: joi.string().trim().valid("grok", "openai", "gemini", "claude").required().messages({
-            "any.only": `Provider must be grok, openai, gemini, or claude.`,
+        provider: joi.string().trim().valid("grok", "openai", "gemini", "claude", "openrouter", "groq").required().messages({
+            "any.only": `Provider must be grok, openai, gemini, claude, openrouter, or groq.`,
             "any.required": `Provider is required.`
         }),
         apiKey: joi.string().trim().required().messages({
@@ -54,7 +54,7 @@ export const aiKeySchema = {
     }),
 
     searchSchema: joi.object({
-        provider: joi.string().trim().valid("grok", "openai", "gemini", "claude").allow("").optional(),
+        provider: joi.string().trim().valid("grok", "openai", "gemini", "claude", "openrouter", "groq").allow("").optional(),
         model: joi.string().trim().allow("").optional(),
         status: joi.string().trim().valid("ACTIVE", "INACTIVE").allow("").optional(),
         search: joi.string().trim().allow("").required(),

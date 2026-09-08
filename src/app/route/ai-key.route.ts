@@ -14,37 +14,37 @@ const aiKeyRoute = function (app: any, express: any) {
     const routerPath = "/AiKey/";
 
     // Add new key
-    router.post(routerPath + "Add", [Global.isAdminAuthorized, checkUserActive, aiKeyAddSanitize, middleware(aiKeySchema.addSchema, "body")], (req: any, res: any) => {
+    router.post(routerPath + "Add", [Global.isAuthorized, checkUserActive, aiKeyAddSanitize, middleware(aiKeySchema.addSchema, "body")], (req: any, res: any) => {
         const task = (new AiKeyController()).boot(req, res);
         return task.add();
     });
 
     // Update existing key
-    router.post(routerPath + "Update", [Global.isAdminAuthorized, checkUserActive, aiKeyUpdateSanitize, middleware(aiKeySchema.updateSchema, "body")], (req: any, res: any) => {
+    router.post(routerPath + "Update", [Global.isAuthorized, checkUserActive, aiKeyUpdateSanitize, middleware(aiKeySchema.updateSchema, "body")], (req: any, res: any) => {
         const task = (new AiKeyController()).boot(req, res);
         return task.update();
     });
 
     // Change key status
-    router.post(routerPath + "Status", [Global.isAdminAuthorized, checkUserActive, aiKeyStatusSanitize, middleware(aiKeySchema.statusSchema, "body")], (req: any, res: any) => {
+    router.post(routerPath + "Status", [Global.isAuthorized, checkUserActive, aiKeyStatusSanitize, middleware(aiKeySchema.statusSchema, "body")], (req: any, res: any) => {
         const task = (new AiKeyController()).boot(req, res);
         return task.changeStatus();
     });
 
     // Select key details by ID
-    router.get(routerPath + "SelectById/:keyId", [Global.isAdminAuthorized, checkUserActive], (req: any, res: any) => {
+    router.get(routerPath + "SelectById/:keyId", [Global.isAuthorized, checkUserActive], (req: any, res: any) => {
         const task = (new AiKeyController()).boot(req, res);
         return task.selectById();
     });
 
     // Search keys
-    router.post(routerPath + "Search", [Global.isAdminAuthorized, checkUserActive, aiKeySearchSanitize, middleware(aiKeySchema.searchSchema, "body")], (req: any, res: any) => {
+    router.post(routerPath + "Search", [Global.isAuthorized, checkUserActive, aiKeySearchSanitize, middleware(aiKeySchema.searchSchema, "body")], (req: any, res: any) => {
         const task = (new AiKeyController()).boot(req, res);
         return task.search();
     });
 
     // Delete key
-    router.delete(routerPath + "Delete/:keyId", [Global.isAdminAuthorized, checkUserActive], (req: any, res: any) => {
+    router.delete(routerPath + "Delete/:keyId", [Global.isAuthorized, checkUserActive], (req: any, res: any) => {
         const task = (new AiKeyController()).boot(req, res);
         return task.delete();
     });

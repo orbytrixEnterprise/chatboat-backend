@@ -96,8 +96,22 @@ export class AIService {
     private async executeChatRequest(keyConfig: any, messages: ChatMessage[], options?: { temperature?: number; maxTokens?: number }): Promise<string> {
         const { provider, apiKey, model, baseUrl } = keyConfig;
 
-        if (provider === "grok" || provider === "openai") {
-            const url = baseUrl || (provider === "grok" ? "https://api.x.ai/v1/chat/completions" : "https://api.openai.com/v1/chat/completions");
+        if (provider === "grok" || provider === "openai" || provider === "openrouter" || provider === "groq") {
+            let defaultUrl = "https://api.openai.com/v1/chat/completions";
+            if (provider === "grok") defaultUrl = "https://api.x.ai/v1/chat/completions";
+            else if (provider === "openrouter") defaultUrl = "https://openrouter.ai/api/v1/chat/completions";
+            else if (provider === "groq") defaultUrl = "https://api.groq.com/openai/v1/chat/completions";
+
+            const url = baseUrl || defaultUrl;
+
+            const headers: any = {
+                "Authorization": `Bearer ${apiKey}`,
+                "Content-Type": "application/json"
+            };
+            if (provider === "openrouter") {
+                headers["HTTP-Referer"] = "https://chatboat.ai";
+                headers["X-Title"] = "Chatboat AI";
+            }
 
             const payload: any = {
                 model: model,
@@ -111,10 +125,7 @@ export class AIService {
             }
 
             const response = await axios.post(url, payload, {
-                headers: {
-                    "Authorization": `Bearer ${apiKey}`,
-                    "Content-Type": "application/json"
-                },
+                headers,
                 timeout: 30000 // 30s timeout
             });
 

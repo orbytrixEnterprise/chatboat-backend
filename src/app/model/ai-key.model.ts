@@ -3,7 +3,7 @@ import mongoose, { Schema } from 'mongoose';
 
 const AiKeySchema = new Schema({
     keyId: { type: Number, unique: true, index: true },
-    provider: { type: String, enum: ["grok", "openai", "gemini", "claude"], required: true },
+    provider: { type: String, enum: ["grok", "openai", "gemini", "claude", "openrouter", "groq"], required: true },
     apiKey: { type: String, required: true },
     model: { type: String, required: true }, // e.g. "grok-beta", "gpt-4o-mini", "gemini-1.5-flash"
     baseUrl: { type: String }, // Optional override for custom API proxies / gateways
