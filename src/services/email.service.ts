@@ -70,7 +70,7 @@ export class EmailService {
             const mailOptions = {
                 from: `${configuration.smtp.emailName} <${configuration.smtp.emailId}>`,
                 to: email,
-                subject: "Reset Your Password —  tailor-management",
+                subject: "Reset Your Password — Chatboat",
                 html: TemplateService.compile(forgotPasswordTemplate, {
                     'user-name':           userName,
                     'reset-password-link': resetUrl,

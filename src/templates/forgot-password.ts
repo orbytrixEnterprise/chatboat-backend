@@ -4,7 +4,7 @@ export const forgotPasswordTemplate = `<!DOCTYPE html>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Reset Your Password — tailor-management </title>
+    <title>Reset Your Password — Chatboat </title>
 </head>
 <body style="margin:0; padding:0; background-color:#f5f0eb;
              font-family:'Segoe UI',Arial,sans-serif;">
@@ -30,7 +30,7 @@ export const forgotPasswordTemplate = `<!DOCTYPE html>
                     <tr>
                         <td align="center" style="padding:36px 40px 20px 40px;">
                             <img src="logo-path"
-                                 alt="tailor-management "
+                                 alt="Chatboat"
                                  width="220"
                                  style="display:block; max-width:220px; width:100%;
                                         height:auto; border:0; outline:none;
@@ -66,7 +66,7 @@ export const forgotPasswordTemplate = `<!DOCTYPE html>
                             <p style="margin:0 0 14px 0; font-size:14px; color:#555555;
                                       line-height:1.75;">
                                 We received a request to reset the password for your
-                                <strong style="color:#8b1a1a;">tailor-management </strong> account.
+                                <strong style="color:#8b1a1a;">Chatboat </strong> account.
                                 Click the button below to set a new password.
                             </p>
                             <p style="margin:0; font-size:14px; color:#555555; line-height:1.75;">
@@ -152,11 +152,11 @@ export const forgotPasswordTemplate = `<!DOCTYPE html>
                             style="background-color:#faf6f6; padding:20px 40px;">
                             <p style="margin:0 0 4px 0; font-size:12px; font-weight:600;
                                       color:#8b1a1a; letter-spacing:1.5px;">
-                                tailor-management 
+                                Chatboat 
                             </p>
                             <p style="margin:0; font-size:11px; color:#bbbbbb; line-height:1.6;">
                                 This is an automated email — please do not reply.<br/>
-                                &copy; 2026 Tailor Management . All rights reserved.
+                                &copy; 2026 Chatboat. All rights reserved.
                             </p>
                         </td>
                     </tr>
