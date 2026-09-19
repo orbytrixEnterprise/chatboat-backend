@@ -66,11 +66,12 @@ jobs:
       # --------------------------------------------------
       # 6. Deploy compiled backend
       #
-      # dist/ contents go into:
+      # dist/ contents go directly into:
       #
       # /var/www/chatboat.orbytrix.com/api/
       #
-      # Preserve:
+      # These are NEVER touched:
+      #
       # .env.production
       # ecosystem.config.js
       # node_modules
@@ -92,6 +93,10 @@ jobs:
 
       # --------------------------------------------------
       # 7. Deploy package-lock.json
+      #
+      # Required by:
+      #
+      # npm ci --omit=dev
       # --------------------------------------------------
       - name: Deploy package lock
         run: |
@@ -102,23 +107,14 @@ jobs:
 
 
       # --------------------------------------------------
-      # 8. Deploy public folder
-      #
-      # IMPORTANT:
-      # No --delete because this folder contains
-      # uploaded/runtime images.
-      # --------------------------------------------------
-      - name: Deploy public folder
-        run: |
-          rsync -avz \
-            -e "ssh -i ~/.ssh/github_actions -o StrictHostKeyChecking=yes" \
-            public/ \
-            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/var/www/chatboat.orbytrix.com/api/public/
-
-
-      # --------------------------------------------------
-      # 9. Install production dependencies
+      # 8. Install production dependencies
       #    and reload PM2
+      #
+      # VPS files preserved:
+      #
+      # public/
+      # .env.production
+      # ecosystem.config.js
       # --------------------------------------------------
       - name: Install production dependencies and reload PM2
         run: |
