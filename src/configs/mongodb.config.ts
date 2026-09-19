@@ -9,19 +9,35 @@ export const seedDefaultAdmin = async (): Promise<void> => {
     }
     try {
         const adminEmail = "admin@gmail.com";
-        const existingAdmin = await User.findOne({ emailId: adminEmail, userType: "ADMIN" });
+        const encryptedEmail = await Global.encrypt(adminEmail);
+        const encryptedName = await Global.encrypt("Orbytrix Admin");
+        const encryptedPassword = await Global.encrypt("orbytrix@2026");
+
+        const existingAdmin = await User.findOne({
+            $or: [
+                { emailId: encryptedEmail, userType: "ADMIN" },
+                { emailId: adminEmail, userType: "ADMIN" }
+            ]
+        });
+
         if (!existingAdmin) {
             const userId = await getNextSequenceValue("userId");
-            const encryptedPassword = await Global.encrypt("orbytrix@2026");
             await User.create({
                 userId,
-                name: "Orbytrix Admin",
-                emailId: adminEmail,
+                name: encryptedName,
+                emailId: encryptedEmail,
                 password: encryptedPassword,
                 userType: "ADMIN",
                 status: "ACTIVE"
             });
             console.log("👤 Default admin user seeded successfully.");
+        } else if (existingAdmin.emailId === adminEmail || existingAdmin.name === "Orbytrix Admin") {
+            // Update to encrypted values if previously unencrypted
+            existingAdmin.name = encryptedName;
+            existingAdmin.emailId = encryptedEmail;
+            existingAdmin.password = encryptedPassword;
+            await existingAdmin.save();
+            console.log("👤 Default admin credentials updated to encrypted storage.");
         }
     } catch (err: any) {
         applicationLogger.error("Error seeding default admin", { err: err.toString() });

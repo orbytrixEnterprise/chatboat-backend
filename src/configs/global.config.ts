@@ -353,11 +353,15 @@ export class Global {
     }
 
     static async encrypt(value : any) {
+        if (!value && value !== 0) {
+            return '';
+        }
+        const str = String(value);
         let encryptString = '';
-        const stringLength = value.length;
+        const stringLength = str.length;
 
         for (let i = 0; i < stringLength; i++) {
-            switch (value[i]) {
+            switch (str[i]) {
                 case 'a':
                     encryptString = encryptString + 'p';
                     break;
@@ -608,7 +612,7 @@ export class Global {
                     encryptString = encryptString + ';';
                     break;
                 default:
-                    encryptString = "";
+                    encryptString = encryptString + str[i];
                     break;
             }
         }
@@ -616,11 +620,15 @@ export class Global {
     }
 
     static async decrypt(value : any) {
+        if (!value && value !== 0) {
+            return '';
+        }
+        const str = String(value);
         let decryptString = '';
-        const stringLength = value.length;
+        const stringLength = str.length;
 
         for (let i = 0; i < stringLength; i++) {
-            switch (value[i]) {
+            switch (str[i]) {
                 case 'p':
                     decryptString = decryptString + 'a';
                     break;
@@ -871,7 +879,7 @@ export class Global {
                     decryptString = decryptString + ',';
                     break;
                 default:
-                    decryptString = "";
+                    decryptString = decryptString + str[i];
                     break;
             }
         }

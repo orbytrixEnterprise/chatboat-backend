@@ -72,10 +72,7 @@ export class UserController extends Controller {
      */
     async signup() {
         try {
-            const body = this.req.body;
-            body.password = await Global.encrypt(body.password);
-
-            const user = await new UserService().manualSignup(body);
+            const user = await new UserService().manualSignup(this.req.body);
             const tokenResult = await this.generateUserTokens(user);
 
             return this.res.status(200).send({ status: 1, message: "Account created successfully.", data: tokenResult });
@@ -91,9 +88,7 @@ export class UserController extends Controller {
     async login() {
         try {
             const { emailId, password } = this.req.body;
-            const encryptedPassword = await Global.encrypt(password);
-
-            const user = await new UserService().manualLogin(emailId, encryptedPassword);
+            const user = await new UserService().manualLogin(emailId, password);
             if (!user) {
                 return this.res.status(200).send({ status: 0, message: "Invalid email address or password." });
             }

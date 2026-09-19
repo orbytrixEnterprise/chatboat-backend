@@ -1,6 +1,6 @@
 import { Controller } from './controller';
 import { ChatService } from '../services';
-import { applicationLogger, response } from '../../configs';
+import { applicationLogger, Global, response } from '../../configs';
 
 export class ChatController extends Controller {
 
@@ -13,7 +13,7 @@ export class ChatController extends Controller {
      */
     async startOrGet() {
         try {
-            const userId = this.req.user.userId;
+            const userId = await Global.getTokenValue(this.req, "id");
             const { characterId } = this.req.body;
 
             const result = await new ChatService().startOrGetConversation(userId, characterId);
@@ -32,7 +32,7 @@ export class ChatController extends Controller {
      */
     async sendMessage() {
         try {
-            const userId = this.req.user.userId;
+            const userId = await Global.getTokenValue(this.req, "id");
             const { conversationId, message } = this.req.body;
 
             const result = await new ChatService().sendMessage(userId, Number(conversationId), message);
@@ -51,7 +51,7 @@ export class ChatController extends Controller {
      */
     async getConversations() {
         try {
-            const userId = this.req.user.userId;
+            const userId = await Global.getTokenValue(this.req, "id");
             const { page = 1, noOf = 10, search } = this.req.body;
 
             const result = await new ChatService().getConversations(userId, Number(page), Number(noOf), search);
@@ -67,7 +67,7 @@ export class ChatController extends Controller {
      */
     async myCharacters() {
         try {
-            const userId = this.req.user.userId;
+            const userId = await Global.getTokenValue(this.req, "id");
             const { page = 1, noOf = 20, search } = this.req.body;
 
             const result = await new ChatService().getMyChattedCharacters(userId, Number(page), Number(noOf), search);
@@ -83,7 +83,7 @@ export class ChatController extends Controller {
      */
     async getHistory() {
         try {
-            const userId = this.req.user.userId;
+            const userId = await Global.getTokenValue(this.req, "id");
             const conversationId = Number(this.req.params.conversationId);
             const page = Number(this.req.query.page || 1);
             const noOf = Number(this.req.query.noOf || 30);
@@ -104,7 +104,7 @@ export class ChatController extends Controller {
      */
     async clear() {
         try {
-            const userId = this.req.user.userId;
+            const userId = await Global.getTokenValue(this.req, "id");
             const conversationId = Number(this.req.params.conversationId);
 
             const success = await new ChatService().clearConversation(userId, conversationId);

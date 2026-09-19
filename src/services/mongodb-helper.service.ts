@@ -99,7 +99,7 @@ export class MongoHelperService {
 
             const results = await queryExec.lean();
 
-            return results.map(mapper);
+            return Promise.all(results.map(mapper));
         }
     }
 }
