@@ -80,6 +80,7 @@ export class CharacterService {
             Character,
             body,
             (c) => ({
+                _id: c._id,
                 character_id: c.characterId,
                 name: c.name,
                 avatar_image: c.avatarImage,

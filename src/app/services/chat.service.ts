@@ -1,4 +1,5 @@
 /* eslint-disable camelcase */
+import mongoose from 'mongoose';
 import {
     Conversation,
     ChatMessage as ChatMessageModel,
@@ -13,28 +14,39 @@ export class ChatService {
     /**
      * Start a new chat or retrieve existing conversation with character
      */
-    async startOrGetConversation(userId: number, characterId: string) {
+    async startOrGetConversation(userId: number, characterIdInput: any) {
+        let character: any = null;
+
+        // Check if input is a valid 24 hex string ObjectId
+        const isValidObjectId = typeof characterIdInput === 'string' && /^[0-9a-fA-F]{24}$/.test(characterIdInput);
+
+        if (isValidObjectId) {
+            character = await Character.findById(characterIdInput).lean();
+        }
+
+        // If not found by _id and input is numeric, search by numeric characterId
+        if (!character && !isNaN(Number(characterIdInput))) {
+            character = await Character.findOne({ characterId: Number(characterIdInput) }).lean();
+        }
+
+        if (!character) {
+            return null;
+        }
+
         let conversation: any = await Conversation.findOne({
             userId,
-            characterId,
+            characterId: character._id,
             status: "ACTIVE"
         }).populate("characterId").lean();
 
-        let character: any = null;
-
         if (!conversation) {
-            character = await Character.findById(characterId).lean();
-            if (!character) {
-                return null;
-            }
-
             const conversationId = await getNextSequenceValue("conversationId");
             const greeting = character.greetingMessage || `Hello! I am ${character.name}. How can I help you today?`;
 
             const createdConv = await Conversation.create({
                 conversationId,
                 userId,
-                characterId,
+                characterId: character._id,
                 title: `${character.name} Chat`,
                 userMemories: [],
                 lastMessage: greeting,
@@ -47,7 +59,7 @@ export class ChatService {
                 messageId,
                 conversationId,
                 userId,
-                characterId,
+                characterId: character._id,
                 sender: "CHARACTER",
                 content: greeting
             });
@@ -65,8 +77,9 @@ export class ChatService {
             conversation: {
                 conversation_id: conversation.conversationId,
                 character_id: conversation.characterId?._id || conversation.characterId,
-                character_name: conversation.characterId?.name || "",
-                character_avatar: conversation.characterId?.avatarImage || "",
+                character_numeric_id: character.characterId,
+                character_name: conversation.characterId?.name || character.name || "",
+                character_avatar: conversation.characterId?.avatarImage || character.avatarImage || "",
                 title: conversation.title,
                 user_memories: conversation.userMemories || [],
                 last_message: conversation.lastMessage,
@@ -90,7 +103,13 @@ export class ChatService {
             return null;
         }
 
-        const character: any = await Character.findById(conversation.characterId).lean();
+        let character: any = null;
+        if (mongoose.Types.ObjectId.isValid(conversation.characterId)) {
+            character = await Character.findById(conversation.characterId).lean();
+        }
+        if (!character && !isNaN(Number(conversation.characterId))) {
+            character = await Character.findOne({ characterId: Number(conversation.characterId) }).lean();
+        }
         if (!character) {
             return null;
         }
@@ -118,7 +137,9 @@ export class ChatService {
             ? `\n\n[EXAMPLE DIALOGUE STYLE]:\n${character.exampleConversations}`
             : '';
 
-        const fullSystemPrompt = `${character.personalityPrompt || `You are ${character.name}.`}${memoryBullets}${exampleStyle}`;
+        const formattingRules = `\n\n[FORMATTING GUIDELINES]: Always stay fully in-character as ${character.name}. Speak naturally and conversationally. Use markdown formatting like bold **key terms** or bullet points only when helpful for structuring longer answers. Do not force repetitive action tags.`;
+
+        const fullSystemPrompt = `${character.personalityPrompt || `You are ${character.name}.`}${memoryBullets}${exampleStyle}${formattingRules}`;
 
         // Fetch last 8 messages for sliding window dialogue context
         const recentHistory = await ChatMessageModel.find({ conversationId })
@@ -167,6 +188,7 @@ export class ChatService {
 
         return {
             conversation_id: conversationId,
+            reply: aiReply,
             user_message: {
                 message_id: userMessage.messageId,
                 sender: userMessage.sender,
@@ -335,7 +357,13 @@ export class ChatService {
 
         await ChatMessageModel.deleteMany({ conversationId });
 
-        const character: any = await Character.findById(conversation.characterId).lean();
+        let character: any = null;
+        if (mongoose.Types.ObjectId.isValid(conversation.characterId)) {
+            character = await Character.findById(conversation.characterId).lean();
+        }
+        if (!character && !isNaN(Number(conversation.characterId))) {
+            character = await Character.findOne({ characterId: Number(conversation.characterId) }).lean();
+        }
         const greeting = character?.greetingMessage || "Hello! How can I help you today?";
 
         const messageId = await getNextSequenceValue("messageId");
@@ -343,7 +371,7 @@ export class ChatService {
             messageId,
             conversationId,
             userId,
-            characterId: conversation.characterId,
+            characterId: character ? character._id : conversation.characterId,
             sender: "CHARACTER",
             content: greeting
         });

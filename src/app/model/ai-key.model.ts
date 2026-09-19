@@ -12,6 +12,16 @@ const AiKeySchema = new Schema({
     failCount: { type: Number, default: 0 },
     lastFailedDate: { type: Date },
     lastUsedDate: { type: Date },
+    
+    // Usage & Monitoring Telemetry
+    totalRequests: { type: Number, default: 0 },
+    totalTokens: { type: Number, default: 0 },
+    usageSpent: { type: String, default: "" },
+    usageLimit: { type: String, default: "" },
+    rateLimitRemaining: { type: String, default: "" },
+    healthStatus: { type: String, enum: ["HEALTHY", "WARNING", "DEGRADED", "ERROR"], default: "HEALTHY" },
+    lastSyncDate: { type: Date },
+    
     creatingDate: { type: Date, default: Date.now }
 });
 

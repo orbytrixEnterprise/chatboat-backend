@@ -49,6 +49,22 @@ const aiKeyRoute = function (app: any, express: any) {
         return task.delete();
     });
 
+    // Live Sync Single Key Quota & Usage
+    router.post(routerPath + "SyncUsage", [Global.isAuthorized, checkUserActive], (req: any, res: any) => {
+        const task = (new AiKeyController()).boot(req, res);
+        return task.syncUsage();
+    });
+    router.post(routerPath + "SyncUsage/:keyId", [Global.isAuthorized, checkUserActive], (req: any, res: any) => {
+        const task = (new AiKeyController()).boot(req, res);
+        return task.syncUsage();
+    });
+
+    // Live Sync All Keys Quota & Usage
+    router.post(routerPath + "SyncAll", [Global.isAuthorized, checkUserActive], (req: any, res: any) => {
+        const task = (new AiKeyController()).boot(req, res);
+        return task.syncAll();
+    });
+
     app.use(configuration.baseApiUrl, router);
 
     return app;

@@ -4,7 +4,7 @@ import { FieldHelperService } from "../../services";
 
 const chatSchema = {
     startOrGetSchema: joi.object().keys({
-        characterId: joi.string().required()
+        characterId: joi.alternatives().try(joi.string(), joi.number()).required()
     }),
 
     sendMessageSchema: joi.object().keys({

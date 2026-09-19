@@ -112,4 +112,34 @@ export class AiKeyController extends Controller {
             return this.res.status(500).send({ status: 0, message: response["100"], error: err.toString() });
         }
     }
+
+    /**
+     * Live sync quota and usage for a single key
+     */
+    async syncUsage() {
+        try {
+            const keyId = Number(this.req.body.keyId || this.req.params.keyId);
+            if (!keyId) {
+                return this.res.status(200).send({ status: 0, message: "Valid Key ID is required." });
+            }
+            const result = await new AiKeyService().syncKeyUsage(keyId);
+            return this.res.status(200).send({ status: 1, message: "AI Key quota & usage synced successfully.", data: result });
+        } catch (err: any) {
+            applicationLogger.error("AiKeyController syncUsage", { body: this.req.body, params: this.req.params, error: err.toString() });
+            return this.res.status(500).send({ status: 0, message: response["100"], error: err.toString() });
+        }
+    }
+
+    /**
+     * Live sync quota and usage for all keys
+     */
+    async syncAll() {
+        try {
+            const result = await new AiKeyService().syncAllKeysUsage();
+            return this.res.status(200).send({ status: 1, message: "All AI Keys synced successfully.", data: result });
+        } catch (err: any) {
+            applicationLogger.error("AiKeyController syncAll", { error: err.toString() });
+            return this.res.status(500).send({ status: 0, message: response["100"], error: err.toString() });
+        }
+    }
 }
