@@ -5,7 +5,7 @@ export const addCharacter = {
     post: {
         tags: [tags.character],
         summary: "Authorized User Access",
-        description: "Add a new AI character persona.",
+        description: "Add a new AI character persona (Admin or App User). Supports visibility: PUBLIC or PRIVATE.",
         operationId: "addCharacter",
         security: SwaggerService.bearerAuth(),
         requestBody: SwaggerService.requestBody("addCharacterInput"),
@@ -17,7 +17,7 @@ export const updateCharacter = {
     post: {
         tags: [tags.character],
         summary: "Authorized User Access",
-        description: "Update an existing AI character attributes.",
+        description: "Update an existing AI character attributes. Allowed for Admin or Character Creator.",
         operationId: "updateCharacter",
         security: SwaggerService.bearerAuth(),
         requestBody: SwaggerService.requestBody("updateCharacterInput"),
@@ -29,7 +29,7 @@ export const selectByIdCharacter = {
     get: {
         tags: [tags.character],
         summary: "Authorized User Access",
-        description: "Get AI character details by ID.",
+        description: "Get AI character details by numeric ID.",
         operationId: "selectByIdCharacter",
         security: SwaggerService.bearerAuth(),
         parameters: SwaggerService.parameters([
@@ -49,7 +49,7 @@ export const searchCharacter = {
     post: {
         tags: [tags.character],
         summary: "Authorized User Access",
-        description: "Search AI characters with pagination, filters and sorting.",
+        description: "Search AI characters with pagination, filters and sorting. Non-admin users see PUBLIC characters plus their own PRIVATE characters.",
         operationId: "searchCharacter",
         security: SwaggerService.bearerAuth(),
         requestBody: SwaggerService.requestBody("searchCharacterInput"),
@@ -61,7 +61,7 @@ export const deleteCharacter = {
     delete: {
         tags: [tags.character],
         summary: "Authorized User Access",
-        description: "Delete an AI character.",
+        description: "Delete an AI character. Allowed for Admin or Character Creator.",
         operationId: "deleteCharacter",
         security: SwaggerService.bearerAuth(),
         parameters: SwaggerService.parameters([
@@ -74,5 +74,29 @@ export const deleteCharacter = {
             }
         ]),
         responses: SwaggerService.successResponse("Character deleted successfully.", "characterCommonOutput")
+    }
+};
+
+export const generateAvatarCharacter = {
+    post: {
+        tags: [tags.character],
+        summary: "Authorized User Access",
+        description: "Generate a character avatar image in Free Mode (Pollinations FLUX/SDXL zero-cost synthesis) and save locally.",
+        operationId: "generateAvatarCharacter",
+        security: SwaggerService.bearerAuth(),
+        requestBody: SwaggerService.requestBody("generateAvatarInput"),
+        responses: SwaggerService.successResponse("Avatar generated successfully.", "generateAvatarOutput")
+    }
+};
+
+export const myCustomCharacters = {
+    post: {
+        tags: [tags.character],
+        summary: "Authorized User Access",
+        description: "Fetch custom characters created by the authenticated user with optional search and visibility filters.",
+        operationId: "myCustomCharacters",
+        security: SwaggerService.bearerAuth(),
+        requestBody: SwaggerService.requestBody("myCustomCharactersInput"),
+        responses: SwaggerService.successResponse("Your custom characters retrieved successfully.", "myCustomCharactersOutput")
     }
 };

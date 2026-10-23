@@ -6,7 +6,9 @@ import {
     updateCharacter,
     selectByIdCharacter,
     searchCharacter,
-    deleteCharacter
+    deleteCharacter,
+    generateAvatarCharacter,
+    myCustomCharacters
 } from "./api";
 
 const character = {
@@ -25,7 +27,9 @@ const character = {
         "/Character/Update": updateCharacter,
         "/Character/SelectById/{characterId}": selectByIdCharacter,
         "/Character/Search": searchCharacter,
-        "/Character/Delete/{characterId}": deleteCharacter
+        "/Character/Delete/{characterId}": deleteCharacter,
+        "/Character/GenerateAvatar": generateAvatarCharacter,
+        "/Character/MyCustomCharacters": myCustomCharacters
     }
 
 };

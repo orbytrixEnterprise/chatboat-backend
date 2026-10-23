@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 
 export interface SearchOptions {
     filterFields: Record<string, string>; // Request parameter key -> Schema field key
@@ -25,19 +25,41 @@ export class MongoHelperService {
         // 1. Global text search keyword
         if (body.search && body.search.trim().length > 0) {
             const searchRegex = new RegExp(body.search.trim(), 'i');
-            query.$or = [
+            const searchOr = [
                 { name: searchRegex },
+                { title: searchRegex },
+                { tagline: searchRegex },
+                { description: searchRegex },
                 { emailId: searchRegex },
                 { mobileNo: searchRegex }
             ];
+
+            if (query.$or) {
+                query.$and = [
+                    { $or: query.$or },
+                    { $or: searchOr }
+                ];
+                delete query.$or;
+            } else {
+                query.$or = searchOr;
+            }
         }
 
         // 2. Map standard request filters (e.g. body.name, body.status)
         for (const [paramKey, schemaField] of Object.entries(options.filterFields)) {
             const val = body[paramKey];
             if (val !== undefined && val !== null && String(val).trim().length > 0) {
+                const strVal = String(val).trim();
+                // Never query for "ALL" as a literal field value
+                if (strVal.toUpperCase() === "ALL") {
+                    continue;
+                }
+                // Do not overwrite if already defined in query (e.g. from defaultQuery)
+                if (query[schemaField] !== undefined) {
+                    continue;
+                }
                 if (typeof val === 'string') {
-                    query[schemaField] = new RegExp(val.trim(), 'i');
+                    query[schemaField] = new RegExp('^' + strVal + '$', 'i');
                 } else {
                     query[schemaField] = val;
                 }
@@ -50,18 +72,43 @@ export class MongoHelperService {
                 const schemaKey = options.filterFields[item.key] || item.key;
                 const val = item.value;
                 if (val !== undefined && val !== null && String(val).trim().length > 0) {
+                    const strVal = String(val).trim();
+                    if (strVal.toUpperCase() === "ALL") {
+                        continue;
+                    }
+
+                    // Special handling for ObjectId references like categoryId
+                    if (schemaKey === "categoryId" || (mongoose.Types.ObjectId.isValid(strVal) && /^[0-9a-fA-F]{24}$/.test(strVal))) {
+                        query[schemaKey] = new mongoose.Types.ObjectId(strVal);
+                        continue;
+                    }
+
+                    // Special handling for visibility in grid filter
+                    if (schemaKey === "visibility") {
+                        if (strVal === "PUBLIC") {
+                            query.$or = [
+                                { visibility: "PUBLIC" },
+                                { visibility: { $exists: false } },
+                                { visibility: null }
+                            ];
+                        } else {
+                            query.visibility = strVal;
+                        }
+                        continue;
+                    }
+
                     switch (item.type) {
                         case "contains":
-                            query[schemaKey] = new RegExp(val.trim(), 'i');
+                            query[schemaKey] = new RegExp(strVal, 'i');
                             break;
                         case "equals":
-                            query[schemaKey] = /^\d+$/.test(val) ? Number(val) : new RegExp('^' + val.trim() + '$', 'i');
+                            query[schemaKey] = /^\d+$/.test(strVal) ? Number(strVal) : new RegExp('^' + strVal + '$', 'i');
                             break;
                         case "start with":
-                            query[schemaKey] = new RegExp('^' + val.trim(), 'i');
+                            query[schemaKey] = new RegExp('^' + strVal, 'i');
                             break;
                         case "end with":
-                            query[schemaKey] = new RegExp(val.trim() + '$', 'i');
+                            query[schemaKey] = new RegExp(strVal + '$', 'i');
                             break;
                         default:
                             query[schemaKey] = val;

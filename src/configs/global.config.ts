@@ -209,6 +209,7 @@ export class Global {
                             authenticate.keyExists("role", decodedForVerification) &&
                             authenticate.keyExists("ipAddress", decodedForVerification) &&
                             authenticate.keyExists("exp", decodedForVerification)) {
+                            req.user = decodedForVerification;
                             next();
                             return true;
                         }

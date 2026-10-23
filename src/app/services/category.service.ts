@@ -22,16 +22,20 @@ export class CategoryService {
      * Update an existing Category
      */
     async updateCategory(categoryId: number, data: any) {
+        const updateSet: any = { updatingDate: new Date() };
+        if (data.name && data.name.trim().length > 0) {
+            updateSet.name = data.name;
+        }
+        if (data.priority !== undefined && data.priority !== null && data.priority !== "") {
+            updateSet.priority = Number(data.priority);
+        }
+        if (data.status && data.status.trim().length > 0) {
+            updateSet.status = data.status;
+        }
+
         const updated = await Category.findOneAndUpdate(
             { categoryId },
-            {
-                $set: {
-                    name: data.name,
-                    priority: data.priority,
-                    status: data.status,
-                    updatingDate: new Date()
-                }
-            },
+            { $set: updateSet },
             { returnDocument: 'after' }
         ).lean();
         return updated;

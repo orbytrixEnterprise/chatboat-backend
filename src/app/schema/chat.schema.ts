@@ -4,24 +4,59 @@ import { FieldHelperService } from "../../services";
 
 const chatSchema = {
     startOrGetSchema: joi.object().keys({
-        characterId: joi.alternatives().try(joi.string(), joi.number()).required()
+        characterId: joi.alternatives().try(joi.string().min(1), joi.number().min(0)).required().messages({
+            "alternatives.match": `Character ID must be a valid string or number.`,
+            "any.required": `Character ID is required.`
+        })
     }),
 
     sendMessageSchema: joi.object().keys({
-        conversationId: joi.number().required().integer(),
-        message: joi.string().required().min(1).max(4000)
+        conversationId: joi.number().required().integer().min(0).messages({
+            "number.base": `Conversation ID must be a number.`,
+            "number.min": `Conversation ID must be greater than or equal to 0.`,
+            "any.required": `Conversation ID is required.`
+        }),
+        message: joi.string().required().min(1).max(4000).messages({
+            "string.base": `Message must be a string.`,
+            "string.empty": `Message cannot be empty.`,
+            "string.min": `Message must be at least 1 character.`,
+            "string.max": `Message cannot exceed 4000 characters.`,
+            "any.required": `Message is required.`
+        })
     }),
 
     conversationsSchema: joi.object().keys({
-        page: joi.number().required().integer().min(1),
-        noOf: joi.number().required().integer().min(1),
-        search: joi.string().optional().allow('')
+        page: joi.number().required().integer().min(0).messages({
+            "number.base": `Page must be a number.`,
+            "number.min": `Page must be greater than or equal to 0.`,
+            "any.required": `Page is required.`
+        }),
+        noOf: joi.number().required().integer().min(0).messages({
+            "number.base": `Number of records must be a number.`,
+            "number.min": `Number of records must be greater than or equal to 0.`,
+            "any.required": `Number of records is required.`
+        }),
+        search: joi.string().required().allow('').messages({
+            "string.base": `Search query must be a string.`,
+            "any.required": `Search query is required.`
+        })
     }),
 
     myCharactersSchema: joi.object().keys({
-        page: joi.number().optional().integer().min(1),
-        noOf: joi.number().optional().integer().min(1),
-        search: joi.string().optional().allow('')
+        page: joi.number().required().integer().min(0).messages({
+            "number.base": `Page must be a number.`,
+            "number.min": `Page must be greater than or equal to 0.`,
+            "any.required": `Page is required.`
+        }),
+        noOf: joi.number().required().integer().min(0).messages({
+            "number.base": `Number of records must be a number.`,
+            "number.min": `Number of records must be greater than or equal to 0.`,
+            "any.required": `Number of records is required.`
+        }),
+        search: joi.string().required().allow('').messages({
+            "string.base": `Search query must be a string.`,
+            "any.required": `Search query is required.`
+        })
     })
 };
 
@@ -41,14 +76,30 @@ export const chatSendMessageSanitize = (req: any, res: any, next: any) => {
 };
 
 export const chatConversationsSanitize = (req: any, res: any, next: any) => {
-    if (FieldHelperService.undefinedAndNullCheck(req.body.search)) {
+    if (req.body.page === undefined || req.body.page === null) {
+        req.body.page = 1;
+    }
+    if (req.body.noOf === undefined || req.body.noOf === null) {
+        req.body.noOf = 20;
+    }
+    if (req.body.search === undefined || req.body.search === null) {
+        req.body.search = "";
+    } else {
         req.body.search = decode(req.sanitize(req.body.search + ""));
     }
     next();
 };
 
 export const chatMyCharactersSanitize = (req: any, res: any, next: any) => {
-    if (FieldHelperService.undefinedAndNullCheck(req.body.search)) {
+    if (req.body.page === undefined || req.body.page === null) {
+        req.body.page = 1;
+    }
+    if (req.body.noOf === undefined || req.body.noOf === null) {
+        req.body.noOf = 20;
+    }
+    if (req.body.search === undefined || req.body.search === null) {
+        req.body.search = "";
+    } else {
         req.body.search = decode(req.sanitize(req.body.search + ""));
     }
     next();

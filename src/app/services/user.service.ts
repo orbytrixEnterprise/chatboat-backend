@@ -17,7 +17,16 @@ export class UserService {
             u.name = await Global.decrypt(u.name);
         }
         if (u.emailId) {
-            u.emailId = await Global.decrypt(u.emailId);
+            // If already in real form (contains '@'), keep as is; otherwise decrypt legacy
+            if (u.emailId.includes('@')) {
+                // Already in real format
+            } else {
+                try {
+                    u.emailId = await Global.decrypt(u.emailId);
+                } catch {
+                    // fallback if not encrypted
+                }
+            }
         }
         if (u.mobileNo) {
             u.mobileNo = await Global.decrypt(u.mobileNo);
@@ -56,8 +65,7 @@ export class UserService {
             query.appleId = socialId;
         }
 
-        const emailLower = emailId.toLowerCase();
-        const encryptedEmail = await Global.encrypt(emailLower);
+        const emailLower = emailId.toLowerCase().trim();
         const encryptedName = name ? await Global.encrypt(name) : "";
 
         // 1. Check if user already exists with this social ID
@@ -67,8 +75,9 @@ export class UserService {
         }
 
         // 2. Check if user already exists with this email address
+        const legacyEncryptedEmail = await Global.encrypt(emailLower);
         user = await User.findOne({
-            $or: [{ emailId: encryptedEmail }, { emailId: emailLower }]
+            $or: [{ emailId: emailLower }, { emailId: legacyEncryptedEmail }]
         });
         if (user) {
             // Link social provider to existing email account
@@ -80,7 +89,7 @@ export class UserService {
             if (encryptedName && (!user.name || user.name === "")) {
                 user.name = encryptedName;
             }
-            user.emailId = encryptedEmail;
+            user.emailId = emailLower; // Store in real form
             await user.save();
             return await this.decryptUserData(user);
         }
@@ -89,7 +98,7 @@ export class UserService {
         if (guestId) {
             const guestUser = await User.findOne({ guestId });
             if (guestUser && !guestUser.emailId && !guestUser.googleId && !guestUser.appleId) {
-                guestUser.emailId = encryptedEmail;
+                guestUser.emailId = emailLower; // Store in real form
                 guestUser.name = encryptedName || guestUser.name;
                 if (provider === "google") {
                     guestUser.googleId = socialId;
@@ -105,7 +114,7 @@ export class UserService {
         const userId = await getNextSequenceValue("userId");
         const newUser = await User.create({
             userId,
-            emailId: encryptedEmail,
+            emailId: emailLower, // Store in real form
             name: encryptedName,
             googleId: provider === "google" ? socialId : undefined,
             appleId: provider === "apple" ? socialId : undefined,
@@ -119,16 +128,16 @@ export class UserService {
      * Registers a new user manually with email, name, mobile, and password.
      */
     async manualSignup(data: any) {
-        const emailLower = data.emailId.toLowerCase();
-        const encryptedEmail = await Global.encrypt(emailLower);
+        const emailLower = data.emailId.toLowerCase().trim();
         const encryptedName = await Global.encrypt(data.name);
         const encryptedMobile = data.mobileNo ? await Global.encrypt(data.mobileNo) : "";
         const encryptedPassword = await Global.encrypt(data.password);
         const encryptedAddress = data.address ? await Global.encrypt(data.address) : "";
 
         // 1. Check if email already registered
+        const legacyEncryptedEmail = await Global.encrypt(emailLower);
         const existingEmail = await User.findOne({
-            $or: [{ emailId: encryptedEmail }, { emailId: emailLower }]
+            $or: [{ emailId: emailLower }, { emailId: legacyEncryptedEmail }]
         });
         if (existingEmail && (existingEmail.password || existingEmail.googleId || existingEmail.appleId)) {
             throw new Error("Email address already registered.");
@@ -139,7 +148,7 @@ export class UserService {
             const guestUser = await User.findOne({ guestId: data.guestId });
             if (guestUser && !guestUser.emailId && !guestUser.googleId && !guestUser.appleId) {
                 guestUser.name = encryptedName;
-                guestUser.emailId = encryptedEmail;
+                guestUser.emailId = emailLower; // Store in real form
                 guestUser.mobileNo = encryptedMobile;
                 guestUser.password = encryptedPassword;
                 guestUser.address = encryptedAddress;
@@ -154,7 +163,7 @@ export class UserService {
         const newUser = await User.create({
             userId,
             name: encryptedName,
-            emailId: encryptedEmail,
+            emailId: emailLower, // Store in real form
             mobileNo: encryptedMobile,
             password: encryptedPassword,
             address: encryptedAddress,
@@ -168,14 +177,14 @@ export class UserService {
      * Logs in a user manually using email and password.
      */
     async manualLogin(emailId: string, password: string) {
-        const emailLower = emailId.toLowerCase();
-        const encryptedEmail = await Global.encrypt(emailLower);
+        const emailLower = emailId.toLowerCase().trim();
+        const legacyEncryptedEmail = await Global.encrypt(emailLower);
         const encryptedPassword = await Global.encrypt(password);
 
         const user = await User.findOne({
             $or: [
-                { emailId: encryptedEmail, password: encryptedPassword },
-                { emailId: emailLower, password: encryptedPassword }
+                { emailId: emailLower, password: encryptedPassword },
+                { emailId: legacyEncryptedEmail, password: encryptedPassword }
             ]
         });
         if (user && user.status !== "ACTIVE") {
@@ -196,21 +205,24 @@ export class UserService {
      * Updates profile details of the user.
      */
     async updateProfile(userId: number, updateData: any) {
-        const payload: any = { ...updateData, updatingDate: new Date() };
-        if (payload.name) {
-            payload.name = await Global.encrypt(payload.name);
+        const payload: any = { updatingDate: new Date() };
+        if (updateData.name && updateData.name.trim().length > 0) {
+            payload.name = await Global.encrypt(updateData.name.trim());
         }
-        if (payload.emailId) {
-            payload.emailId = await Global.encrypt(payload.emailId.toLowerCase());
+        if (updateData.emailId && updateData.emailId.trim().length > 0) {
+            payload.emailId = updateData.emailId.toLowerCase().trim(); // Store in real form
         }
-        if (payload.mobileNo) {
-            payload.mobileNo = await Global.encrypt(payload.mobileNo);
+        if (updateData.mobileNo && updateData.mobileNo.trim().length > 0) {
+            payload.mobileNo = await Global.encrypt(updateData.mobileNo.trim());
         }
-        if (payload.address) {
-            payload.address = await Global.encrypt(payload.address);
+        if (updateData.address && updateData.address.trim().length > 0) {
+            payload.address = await Global.encrypt(updateData.address.trim());
         }
-        if (payload.password) {
-            payload.password = await Global.encrypt(payload.password);
+        if (updateData.password && updateData.password.trim().length > 0) {
+            payload.password = await Global.encrypt(updateData.password);
+        }
+        if (updateData.profileImage && updateData.profileImage.trim().length > 0) {
+            payload.profileImage = updateData.profileImage;
         }
 
         const updated = await User.findOneAndUpdate(
@@ -229,7 +241,7 @@ export class UserService {
 
         if (searchBody.filter && Array.isArray(searchBody.filter)) {
             searchBody.filter = await Promise.all(searchBody.filter.map(async (f: any) => {
-                if (["name", "emailId", "mobileNo", "address"].includes(f.key) && f.value) {
+                if (["name", "mobileNo", "address"].includes(f.key) && f.value) {
                     return { ...f, value: await Global.encrypt(f.value) };
                 }
                 return f;
@@ -243,7 +255,7 @@ export class UserService {
                 user_id: u.userId,
                 guest_id: u.guestId,
                 name: u.name ? await Global.decrypt(u.name) : "",
-                email_id: u.emailId ? await Global.decrypt(u.emailId) : "",
+                email_id: u.emailId ? (u.emailId.includes('@') ? u.emailId : await Global.decrypt(u.emailId)) : "",
                 mobile_no: u.mobileNo ? await Global.decrypt(u.mobileNo) : "",
                 address: u.address ? await Global.decrypt(u.address) : "",
                 user_type: u.userType,

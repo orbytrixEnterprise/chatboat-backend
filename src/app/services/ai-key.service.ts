@@ -26,18 +26,17 @@ export class AiKeyService {
      * Update an existing AI API Key
      */
     async updateAiKey(keyId: number, data: any) {
+        const updateSet: any = {};
+        if (data.provider && data.provider.trim().length > 0) {updateSet.provider = data.provider;}
+        if (data.apiKey && data.apiKey.trim().length > 0) {updateSet.apiKey = data.apiKey;}
+        if (data.model && data.model.trim().length > 0) {updateSet.model = data.model;}
+        if (data.baseUrl !== undefined) {updateSet.baseUrl = data.baseUrl || "";}
+        if (data.priority !== undefined && data.priority !== null && data.priority !== "") {updateSet.priority = Number(data.priority);}
+        if (data.status && data.status.trim().length > 0) {updateSet.status = data.status;}
+
         const updated = await AiKey.findOneAndUpdate(
             { keyId },
-            {
-                $set: {
-                    provider: data.provider,
-                    apiKey: data.apiKey,
-                    model: data.model,
-                    baseUrl: data.baseUrl || "",
-                    priority: data.priority ?? 0,
-                    status: data.status || "ACTIVE"
-                }
-            },
+            { $set: updateSet },
             { returnDocument: 'after' }
         ).lean();
         return updated;

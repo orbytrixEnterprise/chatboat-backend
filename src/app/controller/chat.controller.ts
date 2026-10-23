@@ -16,9 +16,12 @@ export class ChatController extends Controller {
             const userId = await Global.getTokenValue(this.req, "id");
             const { characterId } = this.req.body;
 
-            const result = await new ChatService().startOrGetConversation(userId, characterId);
+            const result: any = await new ChatService().startOrGetConversation(userId, characterId);
             if (!result) {
                 return this.res.status(200).send({ status: 0, message: "Character not found." });
+            }
+            if (result.permissionDenied) {
+                return this.res.status(200).send({ status: 0, message: "This character is private to its creator." });
             }
             return this.res.status(200).send({ status: 1, message: "Conversation ready.", data: result });
         } catch (err: any) {

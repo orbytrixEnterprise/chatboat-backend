@@ -4,7 +4,9 @@ import {
     characterSchema,
     characterAddSanitize,
     characterUpdateSanitize,
-    characterSearchSanitize
+    characterSearchSanitize,
+    characterGenerateAvatarSanitize,
+    characterMyCustomSanitize
 } from "../schema";
 
 const characterRoute = function (app: any, express: any) {
@@ -12,7 +14,7 @@ const characterRoute = function (app: any, express: any) {
     const router = express.Router();
     const routerPath = "/Character/";
 
-    // Add new character
+    // Add new character (Admin or App User)
     router.post(routerPath + "Add", [Global.isAuthorized, checkUserActive, characterAddSanitize, middleware(characterSchema.addSchema, "body")], (req: any, res: any) => {
         const task = (new CharacterController()).boot(req, res);
         return task.add();
@@ -30,7 +32,7 @@ const characterRoute = function (app: any, express: any) {
         return task.selectById();
     });
 
-    // Search characters
+    // Search characters (respects visibility: PUBLIC, createdBy: user)
     router.post(routerPath + "Search", [Global.isAuthorized, checkUserActive, characterSearchSanitize, middleware(characterSchema.searchSchema, "body")], (req: any, res: any) => {
         const task = (new CharacterController()).boot(req, res);
         return task.search();
@@ -40,6 +42,18 @@ const characterRoute = function (app: any, express: any) {
     router.delete(routerPath + "Delete/:characterId", [Global.isAuthorized, checkUserActive], (req: any, res: any) => {
         const task = (new CharacterController()).boot(req, res);
         return task.delete();
+    });
+
+    // Free AI Avatar Image Generator (Pollinations.ai engine)
+    router.post(routerPath + "GenerateAvatar", [Global.isAuthorized, checkUserActive, characterGenerateAvatarSanitize, middleware(characterSchema.generateAvatarSchema, "body")], (req: any, res: any) => {
+        const task = (new CharacterController()).boot(req, res);
+        return task.generateAvatar();
+    });
+
+    // My Custom Characters (created by authenticated user)
+    router.post(routerPath + "MyCustomCharacters", [Global.isAuthorized, checkUserActive, characterMyCustomSanitize, middleware(characterSchema.myCustomCharactersSchema, "body")], (req: any, res: any) => {
+        const task = (new CharacterController()).boot(req, res);
+        return task.myCustomCharacters();
     });
 
     app.use(configuration.baseApiUrl, router);

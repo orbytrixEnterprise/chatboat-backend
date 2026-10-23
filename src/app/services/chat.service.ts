@@ -33,6 +33,11 @@ export class ChatService {
             return null;
         }
 
+        // Privacy protection: Private characters can only be chatted with by their creator or admin
+        if (character.visibility === "PRIVATE" && character.createdBy !== userId && character.createdBy !== 0) {
+            return { permissionDenied: true };
+        }
+
         let conversation: any = await Conversation.findOne({
             userId,
             characterId: character._id,

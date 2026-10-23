@@ -17,10 +17,13 @@ const CharacterSchema = new Schema({
     maxTokens: { type: Number, default: 250 },
     exampleConversations: { type: String, default: "" },
     
+    // Visibility & Sharing
+    visibility: { type: String, enum: ["PUBLIC", "PRIVATE"], default: "PUBLIC", index: true },
+    
     // Admin & Meta fields
     priority: { type: Number, default: 0 },
     status: { type: String, enum: ["ACTIVE", "INACTIVE"], default: "ACTIVE" },
-    createdBy: { type: Number, default: 0 },
+    createdBy: { type: Number, default: 0, index: true },
     creatingDate: { type: Date, default: Date.now },
     updatingDate: { type: Date, default: Date.now }
 });

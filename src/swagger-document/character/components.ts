@@ -3,52 +3,52 @@ const components = {
 
     addCharacterInput: {
       type: 'object',
-      required: ['name', 'personalityPrompt'],
+      required: ['name'],
       properties: {
         name: {
           type: 'string',
           description: 'Name of the AI character',
-          example: 'Sherlock Holmes'
+          example: 'Cyber Samurai'
         },
         avatarImage: {
           type: 'string',
-          description: 'URL of the character avatar image',
-          example: 'https://orbytrix.com/images/sherlock.png'
+          description: 'URL or relative path of the character avatar image',
+          example: 'uploads/characters/avatar-1792767610903-391160.jpg'
         },
         title: {
           type: 'string',
           description: 'Short character subtitle/title',
-          example: 'Consulting Detective'
+          example: 'Futuristic Blade Master'
         },
         tagline: {
           type: 'string',
           description: 'Character tagline or catchphrase',
-          example: 'Elementary, my dear Watson.'
+          example: 'Honor in the code, steel in the shadow.'
         },
         description: {
           type: 'string',
           description: 'Detailed character biography or background',
-          example: 'A fictional consulting detective created by Arthur Conan Doyle.'
+          example: 'A futuristic ronin roaming the neon alleys of Neo-Tokyo.'
         },
         categoryId: {
           type: 'string',
-          description: 'MongoDB Document ID of the category from Category Master',
+          description: 'MongoDB Document ID or Category name (optional, defaults to General if omitted)',
           example: '64f0a2d2ef48c66e2c39fa10'
         },
         greetingMessage: {
           type: 'string',
           description: 'Initial message sent by the character when chat starts',
-          example: 'Hello! I am Sherlock Holmes. What case are we solving today?'
+          example: 'Greetings, traveler. Draw no steel, and we may speak in peace.'
         },
         personalityPrompt: {
           type: 'string',
-          description: 'System instructions that guide the personality, tone, and traits of the AI',
-          example: 'You are Sherlock Holmes. Speak in a sophisticated, Victorian-era analytical tone. Focus on deductive reasoning.'
+          description: 'System instructions that guide the personality, tone, and traits of the AI (auto-generated if omitted)',
+          example: 'You are Cyber Samurai, a stoic warrior in Neo-Tokyo. Speak with honor and wisdom.'
         },
         temperature: {
           type: 'number',
           description: 'Creativity temperature (0.0 to 1.0)',
-          example: 0.5
+          example: 0.7
         },
         maxTokens: {
           type: 'integer',
@@ -58,12 +58,23 @@ const components = {
         exampleConversations: {
           type: 'string',
           description: 'Example few-shot dialog prompts to train the character model style',
-          example: 'User: Who are you?\nAssistant: I am Sherlock Holmes, consulting detective.'
+          example: 'User: Who are you?\nAssistant: I am Cyber Samurai, guardian of Neo-Tokyo.'
         },
         priority: {
           type: 'integer',
           description: 'Weight for grid listing priority',
           example: 10
+        },
+        visibility: {
+          type: 'string',
+          enum: ["PUBLIC", "PRIVATE"],
+          description: 'PUBLIC (visible in global explore for all users) or PRIVATE (only visible to creator)',
+          example: 'PUBLIC'
+        },
+        autoGenerateAvatar: {
+          type: 'boolean',
+          description: 'If true and avatarImage is blank, automatically generates avatar with free AI',
+          example: false
         },
         status: {
           type: 'string',
@@ -84,23 +95,23 @@ const components = {
         },
         name: {
           type: 'string',
-          example: 'Sherlock Holmes'
+          example: 'Cyber Samurai'
         },
         avatarImage: {
           type: 'string',
-          example: 'https://orbytrix.com/images/sherlock.png'
+          example: 'uploads/characters/avatar-1792767610903-391160.jpg'
         },
         title: {
           type: 'string',
-          example: 'Consulting Detective'
+          example: 'Futuristic Blade Master'
         },
         tagline: {
           type: 'string',
-          example: 'Elementary, my dear Watson.'
+          example: 'Honor in the code, steel in the shadow.'
         },
         description: {
           type: 'string',
-          example: 'A fictional consulting detective created by Arthur Conan Doyle.'
+          example: 'A futuristic ronin roaming the neon alleys of Neo-Tokyo.'
         },
         categoryId: {
           type: 'string',
@@ -109,15 +120,15 @@ const components = {
         },
         greetingMessage: {
           type: 'string',
-          example: 'Hello! I am Sherlock Holmes. What case are we solving today?'
+          example: 'Greetings, traveler. Draw no steel, and we may speak in peace.'
         },
         personalityPrompt: {
           type: 'string',
-          example: 'You are Sherlock Holmes. Speak in a sophisticated, Victorian-era analytical tone. Focus on deductive reasoning.'
+          example: 'You are Cyber Samurai, a stoic warrior in Neo-Tokyo. Speak with honor and wisdom.'
         },
         temperature: {
           type: 'number',
-          example: 0.5
+          example: 0.7
         },
         maxTokens: {
           type: 'integer',
@@ -125,11 +136,16 @@ const components = {
         },
         exampleConversations: {
           type: 'string',
-          example: 'User: Who are you?\nAssistant: I am Sherlock Holmes, consulting detective.'
+          example: 'User: Who are you?\nAssistant: I am Cyber Samurai, guardian of Neo-Tokyo.'
         },
         priority: {
           type: 'integer',
           example: 10
+        },
+        visibility: {
+          type: 'string',
+          enum: ["PUBLIC", "PRIVATE"],
+          example: 'PRIVATE'
         },
         status: {
           type: 'string',
@@ -154,6 +170,16 @@ const components = {
         search: {
           type: 'string',
           example: ''
+        },
+        visibility: {
+          type: 'string',
+          enum: ["PUBLIC", "PRIVATE", "ALL"],
+          example: 'PUBLIC'
+        },
+        myOnly: {
+          type: 'boolean',
+          description: 'If true, returns only characters created by the authenticated user',
+          example: false
         },
         page: {
           type: 'integer',
@@ -202,32 +228,163 @@ const components = {
       }
     },
 
+    generateAvatarInput: {
+      type: 'object',
+      required: ['name'],
+      properties: {
+        name: {
+          type: 'string',
+          description: 'Character name',
+          example: 'Cyber Samurai'
+        },
+        title: {
+          type: 'string',
+          description: 'Character title or role',
+          example: 'Futuristic Blade Master'
+        },
+        description: {
+          type: 'string',
+          description: 'Visual description or character backstory',
+          example: 'A neon-lit warrior with glowing purple katana and cybernetic armor'
+        },
+        category: {
+          type: 'string',
+          description: 'Theme or genre (Anime, Gaming, Fantasy, etc.)',
+          example: 'Gaming'
+        },
+        style: {
+          type: 'string',
+          description: 'Artistic render style (e.g. anime 3d render, cinematic studio portrait)',
+          example: 'anime 3d render, cinematic lighting, masterpiece'
+        },
+        prompt: {
+          type: 'string',
+          description: 'Direct prompt override (optional)',
+          example: ''
+        }
+      }
+    },
+
+    generateAvatarOutput: {
+      type: 'object',
+      properties: {
+        status: {
+          type: 'integer',
+          example: 1
+        },
+        message: {
+          type: 'string',
+          example: 'Avatar generated successfully.'
+        },
+        data: {
+          type: 'object',
+          properties: {
+            avatarImage: {
+              type: 'string',
+              description: 'Relative local path to saved image',
+              example: 'uploads/characters/avatar-1792767610903-391160.jpg'
+            },
+            imageUrl: {
+              type: 'string',
+              description: 'Absolute URL ready to load in image view',
+              example: 'http://localhost:5025/uploads/characters/avatar-1792767610903-391160.jpg'
+            },
+            promptUsed: {
+              type: 'string',
+              description: 'The sanitized synthesis prompt used to generate the image',
+              example: 'portrait of Cyber Samurai, Futuristic Blade Master, Gaming theme...'
+            }
+          }
+        }
+      }
+    },
+
+    myCustomCharactersInput: {
+      type: 'object',
+      properties: {
+        page: {
+          type: 'integer',
+          example: 1
+        },
+        noOf: {
+          type: 'integer',
+          example: 20
+        },
+        search: {
+          type: 'string',
+          example: ''
+        },
+        visibility: {
+          type: 'string',
+          enum: ["PUBLIC", "PRIVATE", "ALL"],
+          example: 'ALL'
+        }
+      }
+    },
+
+    myCustomCharactersOutput: {
+      type: 'object',
+      properties: {
+        status: {
+          type: 'integer',
+          example: 1
+        },
+        message: {
+          type: 'string',
+          example: 'Your custom characters retrieved successfully.'
+        },
+        data: {
+          type: 'object',
+          properties: {
+            data: {
+              type: 'array',
+              items: {
+                $ref: '#/components/schemas/characterRowOutput'
+              }
+            },
+            page: {
+              type: 'integer',
+              example: 1
+            },
+            noOf: {
+              type: 'integer',
+              example: 20
+            },
+            total: {
+              type: 'integer',
+              example: 1
+            }
+          }
+        }
+      }
+    },
+
     characterRowOutput: {
       type: 'object',
       properties: {
         'character_id': {
           type: 'integer',
-          example: 1
+          example: 101
         },
         name: {
           type: 'string',
-          example: 'Sherlock Holmes'
+          example: 'Cyber Samurai'
         },
         'avatar_image': {
           type: 'string',
-          example: 'https://orbytrix.com/images/sherlock.png'
+          example: 'uploads/characters/avatar-1792767610903-391160.jpg'
         },
         title: {
           type: 'string',
-          example: 'Consulting Detective'
+          example: 'Futuristic Blade Master'
         },
         tagline: {
           type: 'string',
-          example: 'Elementary, my dear Watson.'
+          example: 'Honor in the code, steel in the shadow.'
         },
         description: {
           type: 'string',
-          example: 'A fictional consulting detective created by Arthur Conan Doyle.'
+          example: 'A futuristic ronin roaming the neon alleys of Neo-Tokyo.'
         },
         'category_id': {
           type: 'string',
@@ -235,19 +392,19 @@ const components = {
         },
         'category_name': {
           type: 'string',
-          example: 'Historical Figures'
+          example: 'Gaming'
         },
         'greeting_message': {
           type: 'string',
-          example: 'Hello! I am Sherlock Holmes. What case are we solving today?'
+          example: 'Greetings, traveler. Draw no steel, and we may speak in peace.'
         },
         'personality_prompt': {
           type: 'string',
-          example: 'You are Sherlock Holmes. Speak in a sophisticated, Victorian-era analytical tone. Focus on deductive reasoning.'
+          example: 'You are Cyber Samurai, a stoic warrior in Neo-Tokyo. Speak with honor and wisdom.'
         },
         temperature: {
           type: 'number',
-          example: 0.5
+          example: 0.7
         },
         'max_tokens': {
           type: 'integer',
@@ -255,11 +412,20 @@ const components = {
         },
         'example_conversations': {
           type: 'string',
-          example: 'User: Who are you?\nAssistant: I am Sherlock Holmes, consulting detective.'
+          example: 'User: Who are you?\nAssistant: I am Cyber Samurai, guardian of Neo-Tokyo.'
         },
         priority: {
           type: 'integer',
           example: 10
+        },
+        visibility: {
+          type: 'string',
+          enum: ["PUBLIC", "PRIVATE"],
+          example: 'PUBLIC'
+        },
+        'is_my_character': {
+          type: 'boolean',
+          example: true
         },
         status: {
           type: 'string',
@@ -267,15 +433,15 @@ const components = {
         },
         'created_by': {
           type: 'integer',
-          example: 1
+          example: 1024
         },
         'creating_date': {
           type: 'string',
-          example: '2026-08-29T12:00:00.000Z'
+          example: '2026-10-23T12:00:00.000Z'
         },
         'updating_date': {
           type: 'string',
-          example: '2026-08-29T12:00:00.000Z'
+          example: '2026-10-23T12:00:00.000Z'
         }
       }
     },
