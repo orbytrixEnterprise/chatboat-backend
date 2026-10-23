@@ -4,10 +4,11 @@ import {
     Conversation,
     ChatMessage as ChatMessageModel,
     Character,
+    User,
     getNextSequenceValue
 } from '../model';
 import { AIService, ChatMessage } from './ai.service';
-import { applicationLogger } from '../../configs';
+import { applicationLogger, Global } from '../../configs';
 
 export class ChatService {
 
@@ -315,10 +316,28 @@ export class ChatService {
     /**
      * Get message history for a specific conversation
      */
-    async getHistory(userId: number, conversationId: number, page: number = 1, noOf: number = 30) {
-        const conversation = await Conversation.findOne({ conversationId, userId }).populate("characterId").lean();
+    async getHistory(userId: number, conversationId: number, page: number = 1, noOf: number = 30, isAdmin: boolean = false) {
+        const query: any = { conversationId };
+        if (!isAdmin) {
+            query.userId = userId;
+        }
+
+        const conversation: any = await Conversation.findOne(query).populate("characterId").lean();
         if (!conversation) {
             return null;
+        }
+
+        let userInfo: any = null;
+        if (isAdmin && conversation.userId) {
+            const userDoc: any = await User.findOne({ userId: conversation.userId }).lean();
+            if (userDoc) {
+                userInfo = {
+                    user_id: userDoc.userId,
+                    name: userDoc.name ? await Global.decrypt(userDoc.name) : "User",
+                    email_id: userDoc.emailId ? (userDoc.emailId.includes('@') ? userDoc.emailId : await Global.decrypt(userDoc.emailId)) : "",
+                    profile_image: userDoc.profileImage || ""
+                };
+            }
         }
 
         const total = await ChatMessageModel.countDocuments({ conversationId });
@@ -336,9 +355,13 @@ export class ChatService {
                 character_id: (conversation.characterId as any)?._id || conversation.characterId,
                 character_name: (conversation.characterId as any)?.name || "",
                 character_avatar: (conversation.characterId as any)?.avatarImage || "",
+                character_title: (conversation.characterId as any)?.title || "",
                 title: conversation.title,
-                user_memories: conversation.userMemories || []
+                user_memories: conversation.userMemories || [],
+                last_message: conversation.lastMessage || "",
+                last_message_date: conversation.lastMessageDate
             },
+            user: userInfo,
             messages: messages.map(m => ({
                 message_id: m.messageId,
                 sender: m.sender,

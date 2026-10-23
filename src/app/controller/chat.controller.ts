@@ -120,4 +120,47 @@ export class ChatController extends Controller {
             return this.res.status(500).send({ status: 0, message: response["100"], error: err.toString() });
         }
     }
+
+    /**
+     * Admin: Get unique characters a specified user has chatted with
+     */
+    async userChattedCharacters() {
+        try {
+            const role = await Global.getTokenValue(this.req, "role");
+            if (role !== "ADMIN" && role !== "SUPER_ADMIN") {
+                return this.res.status(200).send({ status: 0, message: "Unauthorized. Admin access required." });
+            }
+            const { userId, page = 1, noOf = 20, search = "" } = this.req.body;
+
+            const result = await new ChatService().getMyChattedCharacters(Number(userId), Number(page), Number(noOf), search);
+            return this.res.status(200).send({ status: 1, message: "User chatted characters retrieved successfully.", data: result });
+        } catch (err: any) {
+            applicationLogger.error("ChatController userChattedCharacters", { body: this.req.body, error: err.toString() });
+            return this.res.status(500).send({ status: 0, message: response["100"], error: err.toString() });
+        }
+    }
+
+    /**
+     * Admin: Get message history for any user conversation
+     */
+    async adminGetHistory() {
+        try {
+            const role = await Global.getTokenValue(this.req, "role");
+            if (role !== "ADMIN" && role !== "SUPER_ADMIN") {
+                return this.res.status(200).send({ status: 0, message: "Unauthorized. Admin access required." });
+            }
+            const conversationId = Number(this.req.params.conversationId);
+            const page = Number(this.req.query.page || 1);
+            const noOf = Number(this.req.query.noOf || 100);
+
+            const result = await new ChatService().getHistory(0, conversationId, page, noOf, true);
+            if (!result) {
+                return this.res.status(200).send({ status: 0, message: "Conversation not found." });
+            }
+            return this.res.status(200).send({ status: 1, message: "Chat history retrieved successfully.", data: result });
+        } catch (err: any) {
+            applicationLogger.error("ChatController adminGetHistory", { params: this.req.params, error: err.toString() });
+            return this.res.status(500).send({ status: 0, message: response["100"], error: err.toString() });
+        }
+    }
 }

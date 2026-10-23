@@ -57,6 +57,28 @@ const chatSchema = {
             "string.base": `Search query must be a string.`,
             "any.required": `Search query is required.`
         })
+    }),
+
+    userChattedCharactersSchema: joi.object().keys({
+        userId: joi.number().required().integer().min(0).messages({
+            "number.base": `User ID must be a number.`,
+            "number.min": `User ID must be greater than or equal to 0.`,
+            "any.required": `User ID is required.`
+        }),
+        page: joi.number().required().integer().min(0).messages({
+            "number.base": `Page must be a number.`,
+            "number.min": `Page must be greater than or equal to 0.`,
+            "any.required": `Page is required.`
+        }),
+        noOf: joi.number().required().integer().min(0).messages({
+            "number.base": `Number of records must be a number.`,
+            "number.min": `Number of records must be greater than or equal to 0.`,
+            "any.required": `Number of records is required.`
+        }),
+        search: joi.string().required().allow('').messages({
+            "string.base": `Search query must be a string.`,
+            "any.required": `Search query is required.`
+        })
     })
 };
 
@@ -91,6 +113,26 @@ export const chatConversationsSanitize = (req: any, res: any, next: any) => {
 };
 
 export const chatMyCharactersSanitize = (req: any, res: any, next: any) => {
+    if (req.body.page === undefined || req.body.page === null) {
+        req.body.page = 1;
+    }
+    if (req.body.noOf === undefined || req.body.noOf === null) {
+        req.body.noOf = 20;
+    }
+    if (req.body.search === undefined || req.body.search === null) {
+        req.body.search = "";
+    } else {
+        req.body.search = decode(req.sanitize(req.body.search + ""));
+    }
+    next();
+};
+
+export const chatUserChattedSanitize = (req: any, res: any, next: any) => {
+    if (req.body.userId === undefined || req.body.userId === null) {
+        req.body.userId = 0;
+    } else {
+        req.body.userId = Number(req.body.userId);
+    }
     if (req.body.page === undefined || req.body.page === null) {
         req.body.page = 1;
     }

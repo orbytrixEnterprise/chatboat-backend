@@ -5,7 +5,8 @@ import {
     chatStartOrGetSanitize,
     chatSendMessageSanitize,
     chatConversationsSanitize,
-    chatMyCharactersSanitize
+    chatMyCharactersSanitize,
+    chatUserChattedSanitize
 } from "../schema";
 
 const chatRoute = function (app: any, express: any) {
@@ -37,10 +38,22 @@ const chatRoute = function (app: any, express: any) {
         return task.myCharacters();
     });
 
+    // Admin: Get unique characters a specified user has chatted with
+    router.post(routerPath + "UserChattedCharacters", [Global.isAuthorized, checkUserActive, chatUserChattedSanitize, middleware(chatSchema.userChattedCharactersSchema, "body")], (req: any, res: any) => {
+        const task = (new ChatController()).boot(req, res);
+        return task.userChattedCharacters();
+    });
+
     // Get chat message history
     router.get(routerPath + "History/:conversationId", [Global.isAuthorized, checkUserActive], (req: any, res: any) => {
         const task = (new ChatController()).boot(req, res);
         return task.getHistory();
+    });
+
+    // Admin: Get any user's chat message history
+    router.get(routerPath + "AdminHistory/:conversationId", [Global.isAuthorized, checkUserActive], (req: any, res: any) => {
+        const task = (new ChatController()).boot(req, res);
+        return task.adminGetHistory();
     });
 
     // Clear conversation messages and memories

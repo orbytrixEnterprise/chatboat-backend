@@ -6,7 +6,8 @@ import {
     characterUpdateSanitize,
     characterSearchSanitize,
     characterGenerateAvatarSanitize,
-    characterMyCustomSanitize
+    characterMyCustomSanitize,
+    characterUserCharactersSanitize
 } from "../schema";
 
 const characterRoute = function (app: any, express: any) {
@@ -54,6 +55,12 @@ const characterRoute = function (app: any, express: any) {
     router.post(routerPath + "MyCustomCharacters", [Global.isAuthorized, checkUserActive, characterMyCustomSanitize, middleware(characterSchema.myCustomCharactersSchema, "body")], (req: any, res: any) => {
         const task = (new CharacterController()).boot(req, res);
         return task.myCustomCharacters();
+    });
+
+    // Admin: Characters created by a specific user
+    router.post(routerPath + "UserCharacters", [Global.isAuthorized, checkUserActive, characterUserCharactersSanitize, middleware(characterSchema.userCharactersSchema, "body")], (req: any, res: any) => {
+        const task = (new CharacterController()).boot(req, res);
+        return task.userCharacters();
     });
 
     app.use(configuration.baseApiUrl, router);

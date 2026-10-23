@@ -151,4 +151,23 @@ export class CharacterController extends Controller {
             return this.res.status(500).send({ status: 0, message: response["100"], error: err.toString() });
         }
     }
+
+    /**
+     * Admin: Get characters created by a specific user
+     */
+    async userCharacters() {
+        try {
+            const role = await Global.getTokenValue(this.req, "role");
+            if (role !== "ADMIN" && role !== "SUPER_ADMIN") {
+                return this.res.status(200).send({ status: 0, message: "Unauthorized. Admin access required." });
+            }
+
+            const { userId, page = 1, noOf = 20, search = "", visibility = "ALL" } = this.req.body;
+            const result = await new CharacterService().getMyCustomCharacters(Number(userId), Number(page), Number(noOf), search, visibility);
+            return this.res.status(200).send({ status: 1, message: "User characters retrieved successfully.", data: result });
+        } catch (err: any) {
+            applicationLogger.error("CharacterController userCharacters", { body: this.req.body, error: err.toString() });
+            return this.res.status(500).send({ status: 0, message: response["100"], error: err.toString() });
+        }
+    }
 }
