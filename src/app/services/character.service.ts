@@ -77,7 +77,7 @@ export class CharacterService {
      * Fallback 1: DiceBear stylized 512x512 portrait generator (handles 402 rate limit & timeouts)
      * Fallback 2: Robohash / Local SVG vector portrait
      */
-    async generateAvatarImage(params: GenerateAvatarParams): Promise<{ avatarImage: string; imageUrl: string; avatarUrl: string; promptUsed: string }> {
+    async generateAvatarImage(params: GenerateAvatarParams, customBaseUrl?: string): Promise<{ avatarImage: string; imageUrl: string; avatarUrl: string; promptUsed: string }> {
         const { name, title, description, category, style, prompt } = params;
 
         // Construct high-aesthetic portrait prompt
@@ -118,7 +118,7 @@ export class CharacterService {
             const serviceResult = await imageService.generateAndSaveImage(cleanPrompt, {
                 style: style || "painted_anime",
                 shape: "portrait"
-            });
+            }, customBaseUrl);
             return serviceResult;
         } catch (serviceErr: any) {
             applicationLogger.info("CharacterService: chatboat-image-service unavailable or failed, falling back to secondary generator", {
@@ -214,7 +214,8 @@ export class CharacterService {
         fs.writeFileSync(filePath, imageBuffer);
 
         const relativePath = `uploads/characters/${fileName}`;
-        const baseUrl = configuration.apiUrl.endsWith('/') ? configuration.apiUrl : `${configuration.apiUrl}/`;
+        const effectiveBase = customBaseUrl || configuration.apiUrl;
+        const baseUrl = effectiveBase.endsWith('/') ? effectiveBase : `${effectiveBase}/`;
         const fullImageUrl = `${baseUrl}${relativePath}`;
 
         applicationLogger.info("CharacterService generateAvatarImage success", { provider: usedProvider, file: fileName });

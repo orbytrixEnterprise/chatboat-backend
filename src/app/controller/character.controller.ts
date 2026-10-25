@@ -125,7 +125,11 @@ export class CharacterController extends Controller {
      */
     async generateAvatar() {
         try {
-            const result = await new CharacterService().generateAvatarImage(this.req.body);
+            const host = this.req.headers['x-forwarded-host'] || this.req.get('host');
+            const proto = this.req.headers['x-forwarded-proto'] || this.req.protocol || 'http';
+            const requestBaseUrl = host ? `${proto}://${host}/` : undefined;
+
+            const result = await new CharacterService().generateAvatarImage(this.req.body, requestBaseUrl);
             return this.res.status(200).send({ status: 1, message: "Avatar generated successfully.", data: result });
         } catch (err: any) {
             applicationLogger.error("CharacterController generateAvatar", { body: this.req.body, error: err.toString() });

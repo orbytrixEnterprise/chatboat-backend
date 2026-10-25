@@ -3,6 +3,12 @@
  ****************************/
 
 import environmentVariable from './environment.config';
+
+const rawRoot = (environmentVariable.rootUrl || '').trim();
+const baseOrigin = rawRoot.endsWith(':')
+    ? `${rawRoot}${environmentVariable.serverPort}`
+    : rawRoot.replace(/\/+$/, '');
+
 export const configuration: any = {
     mongodbUri: environmentVariable.mongodbUri,
     securityToken: process.env.SECURITY_TOKEN || 'skjfsoakgnasdlkgnsdalgnsdalda ',
@@ -13,8 +19,8 @@ export const configuration: any = {
     publicDirectory: environmentVariable.publicDirectory,
     frontendUrl: environmentVariable.frontendUrl,
     baseApiUrl: '/' + environmentVariable.baseUrl,
-    rootUrl: environmentVariable.rootUrl + environmentVariable.serverPort + '/' + environmentVariable.baseUrl + '/',
-    apiUrl: environmentVariable.rootUrl + environmentVariable.serverPort + '/',
+    rootUrl: `${baseOrigin}/${environmentVariable.baseUrl}/`,
+    apiUrl: `${baseOrigin}/`,
     swaggerUrl: environmentVariable.swaggerUrl,
     eInvoice: environmentVariable.eInvoice,
     imageLogoPath: environmentVariable.imageLogoPath,

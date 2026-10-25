@@ -103,7 +103,8 @@ export class ImageServiceService {
      */
     public async generateAndSaveImage(
         prompt: string,
-        options: ImageGenerationOptions = {}
+        options: ImageGenerationOptions = {},
+        customBaseUrl?: string
     ): Promise<GeneratedAvatarResult> {
         const token = await this.ensureToken();
         const generateUrl = `${configuration.imageServiceUrl}${IMAGE_SERVICE_ENDPOINTS.IMAGE_GENERATE}`;
@@ -190,7 +191,8 @@ export class ImageServiceService {
         fs.writeFileSync(localFilePath, imageBuffer);
 
         const relativePath = `uploads/characters/${localFileName}`;
-        const baseUrl = configuration.apiUrl.endsWith('/') ? configuration.apiUrl : `${configuration.apiUrl}/`;
+        const effectiveBase = customBaseUrl || configuration.apiUrl;
+        const baseUrl = effectiveBase.endsWith('/') ? effectiveBase : `${effectiveBase}/`;
         const fullImageUrl = `${baseUrl}${relativePath}`;
 
         applicationLogger.info("[ImageServiceService] Image saved locally in backend successfully:", {
