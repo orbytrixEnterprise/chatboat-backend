@@ -33,6 +33,12 @@ if (serverType === "production") {
             emailName: process.env.SMTP_EMAIL_NAME || 'chatboat Connect',
             emailId: process.env.SMTP_EMAIL_ID || 'chatboat@orbytrix.com',
             password: process.env.SMTP_PASSWORD || ''
+        },
+
+        imageService: {
+            url: process.env.IMAGE_SERVICE_URL || "https://chatboat-image.orbytrix.com",
+            clientId: process.env.IMAGE_SERVICE_CLIENT_ID || "chatboat_backend_01",
+            clientPassword: process.env.IMAGE_SERVICE_CLIENT_PASSWORD || "Cb_ImgSec_99482$OrbytrixSecretKey!"
         }
     };
 }
@@ -55,6 +61,12 @@ else if (serverType === "staging") {
             emailName: process.env.SMTP_EMAIL_NAME || 'chatboat Connect',
             emailId: process.env.SMTP_EMAIL_ID || 'chatboat@orbytrix.com',
             password: process.env.SMTP_PASSWORD || ''
+        },
+
+        imageService: {
+            url: process.env.IMAGE_SERVICE_URL || "https://chatboatstagingimage.orbytrix.com",
+            clientId: process.env.IMAGE_SERVICE_CLIENT_ID || "chatboat_backend_01",
+            clientPassword: process.env.IMAGE_SERVICE_CLIENT_PASSWORD || "Cb_ImgSec_99482$OrbytrixSecretKey!"
         }
     };
 }
@@ -77,6 +89,12 @@ else if (serverType === "development") {
             emailName: process.env.SMTP_EMAIL_NAME || 'chatboat Connect',
             emailId: process.env.SMTP_EMAIL_ID || 'chatboat@orbytrix.com',
             password: process.env.SMTP_PASSWORD || ''
+        },
+
+        imageService: {
+            url: process.env.IMAGE_SERVICE_URL || "http://localhost:5030",
+            clientId: process.env.IMAGE_SERVICE_CLIENT_ID || "chatboat_backend_01",
+            clientPassword: process.env.IMAGE_SERVICE_CLIENT_PASSWORD || "Cb_ImgSec_99482$OrbytrixSecretKey!"
         }
     };
 }

@@ -1,5 +1,5 @@
 import { configuration } from "../configs";
-import { NetworkHelperService } from "../services";
+import { NetworkHelperService } from "../services/network-helper.service";
 
 const serverType = (process.env.NODE_ENV || "staging").trim();
 const serverList = [];

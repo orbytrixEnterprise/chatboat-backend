@@ -4,3 +4,4 @@ export * from './ai-key.service';
 export * from './character.service';
 export * from './category.service';
 export * from './chat.service';
+export * from './image-service.service';

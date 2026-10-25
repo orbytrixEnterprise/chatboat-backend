@@ -6,6 +6,7 @@ import axios from 'axios';
 import { Character, Category, getNextSequenceValue } from '../model';
 import { MongoHelperService } from '../../services';
 import { applicationLogger, configuration } from '../../configs';
+import { ImageServiceService } from './image-service.service';
 
 export interface GenerateAvatarParams {
     name: string;
@@ -110,29 +111,18 @@ export class CharacterService {
         let fileExtension = 'jpg';
         let usedProvider = 'pollinations';
 
-        // 1. Primary: Pollinations.ai (12s timeout to avoid blocking frontend)
+        // 1. Primary: Chatboat Dedicated AI Image Microservice (Perchance AI)
         try {
-            const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=512&height=512&nologo=true&seed=${seed}`;
-            applicationLogger.info("CharacterService generateAvatarImage calling Pollinations", { url: pollinationsUrl });
-
-            const response = await axios.get(pollinationsUrl, {
-                responseType: 'arraybuffer',
-                timeout: 15000,
-                headers: {
-                    'User-Agent': 'Chatboat-AI-Avatar-Engine/1.0'
-                }
+            applicationLogger.info("CharacterService generateAvatarImage calling chatboat-image-service...", { prompt: cleanPrompt });
+            const imageService = ImageServiceService.getInstance();
+            const serviceResult = await imageService.generateAndSaveImage(cleanPrompt, {
+                style: style || "painted_anime",
+                shape: "portrait"
             });
-
-            if (response.data && response.data.length > 500) {
-                imageBuffer = Buffer.from(response.data);
-                fileExtension = 'jpg';
-                usedProvider = 'pollinations';
-            }
-        } catch (pollinationsErr: any) {
-            const errStatus = pollinationsErr.response ? pollinationsErr.response.status : pollinationsErr.message;
-            applicationLogger.info("CharacterService: Pollinations unavailable or rate limited, switching to fallback avatar engine", {
-                status: errStatus,
-                message: pollinationsErr.message
+            return serviceResult;
+        } catch (serviceErr: any) {
+            applicationLogger.info("CharacterService: chatboat-image-service unavailable or failed, falling back to secondary generator", {
+                error: serviceErr.message
             });
         }
 
