@@ -218,12 +218,19 @@ export class ChatService {
         const query: any = { userId, status: "ACTIVE" };
 
         const total = await Conversation.countDocuments(query);
-        const conversations = await Conversation.find(query)
+        let findQuery = Conversation.find(query)
             .sort({ lastMessageDate: -1 })
-            .skip((page - 1) * noOf)
-            .limit(noOf)
-            .populate("characterId")
-            .lean();
+            .populate("characterId");
+
+        // If page is 0 and noOf is 0 (or noOf is 0), return all conversations without pagination
+        if (page === 0 && noOf === 0) {
+            // Return all without skip or limit
+        } else if (noOf > 0) {
+            const safePage = page > 0 ? page : 1;
+            findQuery = findQuery.skip((safePage - 1) * noOf).limit(noOf);
+        }
+
+        const conversations = await findQuery.lean();
 
         let filtered = conversations;
         if (search) {
@@ -303,7 +310,9 @@ export class ChatService {
         }
 
         const total = characterList.length;
-        const paginatedData = characterList.slice((page - 1) * noOf, page * noOf);
+        const paginatedData = (page === 0 && noOf === 0)
+            ? characterList
+            : (noOf > 0 ? characterList.slice((page > 0 ? page - 1 : 0) * noOf, (page > 0 ? page : 1) * noOf) : characterList);
 
         return {
             data: paginatedData,
@@ -341,11 +350,17 @@ export class ChatService {
         }
 
         const total = await ChatMessageModel.countDocuments({ conversationId });
-        const messages = await ChatMessageModel.find({ conversationId })
-            .sort({ creatingDate: -1 })
-            .skip((page - 1) * noOf)
-            .limit(noOf)
-            .lean();
+        let msgQuery = ChatMessageModel.find({ conversationId }).sort({ creatingDate: -1 });
+
+        // If page is 0 and noOf is 0 (or noOf is 0), return all messages without pagination
+        if (page === 0 && noOf === 0) {
+            // Return all messages without skip/limit
+        } else if (noOf > 0) {
+            const safePage = page > 0 ? page : 1;
+            msgQuery = msgQuery.skip((safePage - 1) * noOf).limit(noOf);
+        }
+
+        const messages = await msgQuery.lean();
 
         messages.reverse();
 

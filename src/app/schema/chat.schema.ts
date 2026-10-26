@@ -100,9 +100,13 @@ export const chatSendMessageSanitize = (req: any, res: any, next: any) => {
 export const chatConversationsSanitize = (req: any, res: any, next: any) => {
     if (req.body.page === undefined || req.body.page === null) {
         req.body.page = 1;
+    } else {
+        req.body.page = Number(req.body.page);
     }
     if (req.body.noOf === undefined || req.body.noOf === null) {
         req.body.noOf = 20;
+    } else {
+        req.body.noOf = Number(req.body.noOf);
     }
     if (req.body.search === undefined || req.body.search === null) {
         req.body.search = "";
@@ -115,9 +119,13 @@ export const chatConversationsSanitize = (req: any, res: any, next: any) => {
 export const chatMyCharactersSanitize = (req: any, res: any, next: any) => {
     if (req.body.page === undefined || req.body.page === null) {
         req.body.page = 1;
+    } else {
+        req.body.page = Number(req.body.page);
     }
     if (req.body.noOf === undefined || req.body.noOf === null) {
         req.body.noOf = 20;
+    } else {
+        req.body.noOf = Number(req.body.noOf);
     }
     if (req.body.search === undefined || req.body.search === null) {
         req.body.search = "";
@@ -135,9 +143,13 @@ export const chatUserChattedSanitize = (req: any, res: any, next: any) => {
     }
     if (req.body.page === undefined || req.body.page === null) {
         req.body.page = 1;
+    } else {
+        req.body.page = Number(req.body.page);
     }
     if (req.body.noOf === undefined || req.body.noOf === null) {
         req.body.noOf = 20;
+    } else {
+        req.body.noOf = Number(req.body.noOf);
     }
     if (req.body.search === undefined || req.body.search === null) {
         req.body.search = "";

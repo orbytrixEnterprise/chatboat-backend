@@ -29,7 +29,7 @@ export const getConversationsChat = {
     post: {
         tags: [tags.chat],
         summary: "Authorized User Access",
-        description: "Get user's active character conversations list with last message and character metadata.",
+        description: "Get user's active character conversations list with last message and character metadata. Pass page: 0 and noOf: 0 to return all conversations without pagination.",
         operationId: "getConversationsChat",
         security: SwaggerService.bearerAuth(),
         requestBody: SwaggerService.requestBody("conversationsInput"),
@@ -41,7 +41,7 @@ export const myCharactersChat = {
     post: {
         tags: [tags.chat],
         summary: "Authorized User Access",
-        description: "Get unique characters that the user has actively chatted with, populated with character details, conversation ID, and last message info.",
+        description: "Get unique characters that the user has actively chatted with, populated with character details, conversation ID, and last message info. Pass page: 0 and noOf: 0 to return all chatted characters without pagination.",
         operationId: "myCharactersChat",
         security: SwaggerService.bearerAuth(),
         requestBody: SwaggerService.requestBody("myCharactersInput"),
@@ -53,7 +53,7 @@ export const getHistoryChat = {
     get: {
         tags: [tags.chat],
         summary: "Authorized User Access",
-        description: "Get paginated message history for a specific conversation.",
+        description: "Get message history for a specific conversation. Pass query page=0&noOf=0 to return all chat messages without pagination.",
         operationId: "getHistoryChat",
         security: SwaggerService.bearerAuth(),
         parameters: SwaggerService.parameters([
@@ -69,6 +69,7 @@ export const getHistoryChat = {
                 in: "query",
                 type: "integer",
                 required: false,
+                description: "Page index (1-based). Pass 0 (with noOf=0) to return all chat messages.",
                 example: 1
             },
             {
@@ -76,6 +77,7 @@ export const getHistoryChat = {
                 in: "query",
                 type: "integer",
                 required: false,
+                description: "Records per page. Pass 0 (with page=0) to return all chat messages.",
                 example: 30
             }
         ]),

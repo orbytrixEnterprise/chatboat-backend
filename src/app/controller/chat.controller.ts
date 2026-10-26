@@ -55,9 +55,11 @@ export class ChatController extends Controller {
     async getConversations() {
         try {
             const userId = await Global.getTokenValue(this.req, "id");
-            const { page = 1, noOf = 10, search } = this.req.body;
+            const page = this.req.body.page !== undefined ? Number(this.req.body.page) : 1;
+            const noOf = this.req.body.noOf !== undefined ? Number(this.req.body.noOf) : 10;
+            const { search } = this.req.body;
 
-            const result = await new ChatService().getConversations(userId, Number(page), Number(noOf), search);
+            const result = await new ChatService().getConversations(userId, page, noOf, search);
             return this.res.status(200).send({ status: 1, message: "Conversations retrieved successfully.", data: result });
         } catch (err: any) {
             applicationLogger.error("ChatController getConversations", { body: this.req.body, error: err.toString() });
@@ -71,9 +73,11 @@ export class ChatController extends Controller {
     async myCharacters() {
         try {
             const userId = await Global.getTokenValue(this.req, "id");
-            const { page = 1, noOf = 20, search } = this.req.body;
+            const page = this.req.body.page !== undefined ? Number(this.req.body.page) : 1;
+            const noOf = this.req.body.noOf !== undefined ? Number(this.req.body.noOf) : 20;
+            const { search } = this.req.body;
 
-            const result = await new ChatService().getMyChattedCharacters(userId, Number(page), Number(noOf), search);
+            const result = await new ChatService().getMyChattedCharacters(userId, page, noOf, search);
             return this.res.status(200).send({ status: 1, message: "Chatted characters retrieved successfully.", data: result });
         } catch (err: any) {
             applicationLogger.error("ChatController myCharacters", { body: this.req.body, error: err.toString() });
@@ -88,8 +92,8 @@ export class ChatController extends Controller {
         try {
             const userId = await Global.getTokenValue(this.req, "id");
             const conversationId = Number(this.req.params.conversationId);
-            const page = Number(this.req.query.page || 1);
-            const noOf = Number(this.req.query.noOf || 30);
+            const page = this.req.query.page !== undefined ? Number(this.req.query.page) : 1;
+            const noOf = this.req.query.noOf !== undefined ? Number(this.req.query.noOf) : 30;
 
             const result = await new ChatService().getHistory(userId, conversationId, page, noOf);
             if (!result) {
@@ -130,9 +134,11 @@ export class ChatController extends Controller {
             if (role !== "ADMIN" && role !== "SUPER_ADMIN") {
                 return this.res.status(200).send({ status: 0, message: "Unauthorized. Admin access required." });
             }
-            const { userId, page = 1, noOf = 20, search = "" } = this.req.body;
+            const { userId, search = "" } = this.req.body;
+            const page = this.req.body.page !== undefined ? Number(this.req.body.page) : 1;
+            const noOf = this.req.body.noOf !== undefined ? Number(this.req.body.noOf) : 20;
 
-            const result = await new ChatService().getMyChattedCharacters(Number(userId), Number(page), Number(noOf), search);
+            const result = await new ChatService().getMyChattedCharacters(Number(userId), page, noOf, search);
             return this.res.status(200).send({ status: 1, message: "User chatted characters retrieved successfully.", data: result });
         } catch (err: any) {
             applicationLogger.error("ChatController userChattedCharacters", { body: this.req.body, error: err.toString() });
@@ -150,8 +156,8 @@ export class ChatController extends Controller {
                 return this.res.status(200).send({ status: 0, message: "Unauthorized. Admin access required." });
             }
             const conversationId = Number(this.req.params.conversationId);
-            const page = Number(this.req.query.page || 1);
-            const noOf = Number(this.req.query.noOf || 100);
+            const page = this.req.query.page !== undefined ? Number(this.req.query.page) : 1;
+            const noOf = this.req.query.noOf !== undefined ? Number(this.req.query.noOf) : 100;
 
             const result = await new ChatService().getHistory(0, conversationId, page, noOf, true);
             if (!result) {

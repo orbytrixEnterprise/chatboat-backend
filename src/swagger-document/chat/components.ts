@@ -36,14 +36,17 @@ const components = {
       properties: {
         page: {
           type: 'integer',
+          description: 'Page index (1-based). Pass 0 (with noOf: 0) to return all conversations without pagination.',
           example: 1
         },
         noOf: {
           type: 'integer',
+          description: 'Records per page. Pass 0 (with page: 0) to return all conversations without pagination.',
           example: 10
         },
         search: {
           type: 'string',
+          description: 'Optional search keyword to filter by character name, title, or last message.',
           example: ''
         }
       }
@@ -263,14 +266,17 @@ const components = {
       properties: {
         page: {
           type: 'integer',
+          description: 'Page index (1-based). Pass 0 (with noOf: 0) to return all chatted characters without pagination.',
           example: 1
         },
         noOf: {
           type: 'integer',
+          description: 'Records per page. Pass 0 (with page: 0) to return all chatted characters without pagination.',
           example: 20
         },
         search: {
           type: 'string',
+          description: 'Optional search keyword to filter by character name, title, tagline, or category.',
           example: ''
         }
       }
