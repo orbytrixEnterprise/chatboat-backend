@@ -25,6 +25,55 @@ export class CharacterController extends Controller {
     }
 
     /**
+     * Create user's personal private character with a simplified payload.
+     * Only essential fields (name, description, avatar) are exposed to the user.
+     * All remaining fields are automatically filled with production defaults and visibility is strictly set to PRIVATE.
+     */
+    async createMyCharacter() {
+        try {
+            const userId = Number(await Global.getTokenValue(this.req, "id")) || 0;
+            if (!userId) {
+                return this.res.status(401).send({ status: 0, message: "Unauthorized request." });
+            }
+
+            const avatarImage = this.req.body.avatarImage ? this.req.body.avatarImage.trim() : "";
+            const autoGenerate = this.req.body.autoGenerateAvatar !== undefined
+                ? Boolean(this.req.body.autoGenerateAvatar)
+                : avatarImage === "";
+
+            const payload = {
+                name: this.req.body.name.trim(),
+                description: this.req.body.description.trim(),
+                avatarImage,
+                autoGenerateAvatar: autoGenerate,
+                categoryId: this.req.body.categoryId || "",
+                greetingMessage: this.req.body.greetingMessage ? this.req.body.greetingMessage.trim() : "",
+                tagline: this.req.body.tagline ? this.req.body.tagline.trim() : "",
+                personalityPrompt: this.req.body.personalityPrompt ? this.req.body.personalityPrompt.trim() : "",
+                // Automated defaults for personal private character
+                visibility: "PRIVATE",
+                createdBy: userId,
+                status: "ACTIVE",
+                priority: 0,
+                temperature: 0.7,
+                maxTokens: 250,
+                exampleConversations: "",
+                title: this.req.body.tagline ? this.req.body.tagline.trim() : ""
+            };
+
+            const result = await new CharacterService().addCharacter(payload);
+            return this.res.status(200).send({
+                status: 1,
+                message: "Your personal character has been created successfully.",
+                data: result
+            });
+        } catch (err: any) {
+            applicationLogger.error("CharacterController createMyCharacter", { body: this.req.body, error: err.toString() });
+            return this.res.status(500).send({ status: 0, message: response["100"], error: err.toString() });
+        }
+    }
+
+    /**
      * Update an existing Character (Admin or Character Creator)
      */
     async update() {

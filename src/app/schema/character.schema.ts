@@ -228,6 +228,38 @@ const characterSchema = {
             "any.only": `Visibility must be PUBLIC, PRIVATE, or ALL.`,
             "any.required": `Visibility is required.`
         })
+    }),
+
+    createMyCharacterSchema: joi.object().keys({
+        name: joi.string().required().min(1).max(100).messages({
+            "string.empty": `Character name is required.`,
+            "string.max": `Character name cannot exceed 100 characters.`,
+            "any.required": `Character name is required.`
+        }),
+        description: joi.string().required().min(1).max(2000).messages({
+            "string.empty": `Description is required.`,
+            "string.max": `Description cannot exceed 2000 characters.`,
+            "any.required": `Description is required.`
+        }),
+        avatarImage: joi.string().allow('').optional().messages({
+            "string.base": `Avatar image must be a string.`
+        }),
+        autoGenerateAvatar: joi.boolean().optional().messages({
+            "boolean.base": `Auto generate avatar must be a boolean.`
+        }),
+        categoryId: joi.string().allow('').optional().messages({
+            "string.base": `Category ID must be a string.`
+        }),
+        greetingMessage: joi.string().allow('').optional().messages({
+            "string.base": `Greeting message must be a string.`
+        }),
+        tagline: joi.string().allow('').max(200).optional().messages({
+            "string.base": `Tagline must be a string.`,
+            "string.max": `Tagline cannot exceed 200 characters.`
+        }),
+        personalityPrompt: joi.string().allow('').optional().messages({
+            "string.base": `Personality prompt must be a string.`
+        })
     })
 };
 
@@ -468,6 +500,35 @@ export const characterUserCharactersSanitize = (req: any, res: any, next: any) =
     }
 
     const fields = ['search', 'visibility'];
+    for (const f of fields) {
+        if (FieldHelperService.undefinedAndNullCheck(req.body[f])) {
+            req.body[f] = decode(req.sanitize(req.body[f] + ""));
+        }
+    }
+    next();
+};
+
+export const characterCreateMyCharacterSanitize = (req: any, res: any, next: any) => {
+    if (req.body.avatarImage === undefined || req.body.avatarImage === null) {
+        req.body.avatarImage = "";
+    }
+    if (req.body.categoryId === undefined || req.body.categoryId === null) {
+        req.body.categoryId = "";
+    }
+    if (req.body.greetingMessage === undefined || req.body.greetingMessage === null) {
+        req.body.greetingMessage = "";
+    }
+    if (req.body.tagline === undefined || req.body.tagline === null) {
+        req.body.tagline = "";
+    }
+    if (req.body.personalityPrompt === undefined || req.body.personalityPrompt === null) {
+        req.body.personalityPrompt = "";
+    }
+    if (req.body.autoGenerateAvatar === undefined || req.body.autoGenerateAvatar === null) {
+        req.body.autoGenerateAvatar = req.body.avatarImage.trim() === "";
+    }
+
+    const fields = ['name', 'description', 'avatarImage', 'categoryId', 'greetingMessage', 'tagline', 'personalityPrompt'];
     for (const f of fields) {
         if (FieldHelperService.undefinedAndNullCheck(req.body[f])) {
             req.body[f] = decode(req.sanitize(req.body[f] + ""));

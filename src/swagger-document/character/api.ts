@@ -5,11 +5,23 @@ export const addCharacter = {
     post: {
         tags: [tags.character],
         summary: "Authorized User Access",
-        description: "Add a new AI character persona (Admin or App User). Supports visibility: PUBLIC or PRIVATE.",
+        description: "Add a new AI character persona (Admin or Full Configuration). Supports visibility: PUBLIC or PRIVATE.",
         operationId: "addCharacter",
         security: SwaggerService.bearerAuth(),
         requestBody: SwaggerService.requestBody("addCharacterInput"),
         responses: SwaggerService.successResponse("Character created successfully.", "characterOutput")
+    }
+};
+
+export const createMyCharacter = {
+    post: {
+        tags: [tags.character],
+        summary: "Authorized User Access",
+        description: "Create user's personal private character with a simplified payload. Visibility is automatically set to PRIVATE.",
+        operationId: "createMyCharacter",
+        security: SwaggerService.bearerAuth(),
+        requestBody: SwaggerService.requestBody("createMyCharacterInput"),
+        responses: SwaggerService.successResponse("Your personal character has been created successfully.", "characterOutput")
     }
 };
 

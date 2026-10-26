@@ -3,6 +3,7 @@ import { CharacterController } from "../controller";
 import {
     characterSchema,
     characterAddSanitize,
+    characterCreateMyCharacterSanitize,
     characterUpdateSanitize,
     characterSearchSanitize,
     characterGenerateAvatarSanitize,
@@ -15,10 +16,16 @@ const characterRoute = function (app: any, express: any) {
     const router = express.Router();
     const routerPath = "/Character/";
 
-    // Add new character (Admin or App User)
+    // Add new character (Admin / Full Configuration)
     router.post(routerPath + "Add", [Global.isAuthorized, checkUserActive, characterAddSanitize, middleware(characterSchema.addSchema, "body")], (req: any, res: any) => {
         const task = (new CharacterController()).boot(req, res);
         return task.add();
+    });
+
+    // Create personal character (Simplified user payload, defaults visibility to PRIVATE)
+    router.post(routerPath + "CreateMyCharacter", [Global.isAuthorized, checkUserActive, characterCreateMyCharacterSanitize, middleware(characterSchema.createMyCharacterSchema, "body")], (req: any, res: any) => {
+        const task = (new CharacterController()).boot(req, res);
+        return task.createMyCharacter();
     });
 
     // Update existing character

@@ -3,6 +3,7 @@ import components from "./components";
 
 import {
     addCharacter,
+    createMyCharacter,
     updateCharacter,
     selectByIdCharacter,
     searchCharacter,
@@ -24,6 +25,7 @@ const character = {
 
     paths: {
         "/Character/Add": addCharacter,
+        "/Character/CreateMyCharacter": createMyCharacter,
         "/Character/Update": updateCharacter,
         "/Character/SelectById/{characterId}": selectByIdCharacter,
         "/Character/Search": searchCharacter,

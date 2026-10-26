@@ -84,6 +84,53 @@ const components = {
       }
     },
 
+    createMyCharacterInput: {
+      type: 'object',
+      required: ['name', 'description'],
+      properties: {
+        name: {
+          type: 'string',
+          description: 'Name of your custom character',
+          example: 'Cyber Samurai'
+        },
+        description: {
+          type: 'string',
+          description: 'Character biography, visual appearance, and lore',
+          example: 'A futuristic ronin roaming the neon alleys of Neo-Tokyo with a purple plasma blade.'
+        },
+        avatarImage: {
+          type: 'string',
+          description: 'Generated avatar image path (e.g. from GenerateAvatar API, or left blank to auto-generate)',
+          example: 'uploads/characters/avatar-1792767610903-391160.jpg'
+        },
+        autoGenerateAvatar: {
+          type: 'boolean',
+          description: 'Automatically generate an avatar portrait with AI if avatarImage is not provided (default: true if avatarImage is blank)',
+          example: true
+        },
+        categoryId: {
+          type: 'string',
+          description: 'Optional category ID or name (auto-resolved if omitted)',
+          example: 'Fantasy'
+        },
+        greetingMessage: {
+          type: 'string',
+          description: 'First greeting message when starting a chat (auto-constructed if omitted)',
+          example: 'Greetings, traveler. Draw no steel, and we may speak in peace.'
+        },
+        tagline: {
+          type: 'string',
+          description: 'Catchphrase or tagline for character card preview',
+          example: 'Honor in the code, steel in the shadow.'
+        },
+        personalityPrompt: {
+          type: 'string',
+          description: 'Custom AI behavioral instructions (auto-constructed from name and description if omitted)',
+          example: 'You are Cyber Samurai, a stoic warrior in Neo-Tokyo. Speak with honor and wisdom.'
+        }
+      }
+    },
+
     updateCharacterInput: {
       type: 'object',
       required: ['characterId'],
