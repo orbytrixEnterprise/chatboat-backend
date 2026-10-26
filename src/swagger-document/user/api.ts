@@ -12,6 +12,17 @@ export const guestUser = {
     }
 };
 
+export const checkSocialUser = {
+    post: {
+        tags: [tags.user],
+        summary: "Social Pre-Login Verification",
+        description: "Check if Apple/Google account already exists and evaluate whether guest chat history can be merged.",
+        operationId: "userCheckSocial",
+        requestBody: SwaggerService.requestBody("checkSocialInput"),
+        responses: SwaggerService.successResponse("Social account verification completed.", "checkSocialOutput")
+    }
+};
+
 export const socialLoginUser = {
     post: {
         tags: [tags.user],
@@ -77,5 +88,16 @@ export const searchUser = {
         security: SwaggerService.bearerAuth(),
         requestBody: SwaggerService.requestBody("userSearchInput"),
         responses: SwaggerService.successResponse("Users retrieved successfully.", "userSearchOutput")
+    }
+};
+
+export const deleteAccountUser = {
+    delete: {
+        tags: [tags.user],
+        summary: "Authorized User Access",
+        description: "Soft delete user account, invalidate sessions, and archive conversations (iOS App Store Guideline 5.1.1(v) compliance).",
+        operationId: "userDeleteAccount",
+        security: SwaggerService.bearerAuth(),
+        responses: SwaggerService.successResponse("Your account and associated data have been deleted successfully.", "userCommonOutput")
     }
 };

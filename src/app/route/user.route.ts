@@ -3,6 +3,7 @@ import { UserController } from "../controller";
 import {
     userSchema,
     guestSanitize,
+    checkSocialAccountSanitize,
     socialLoginSanitize,
     signupSanitize,
     loginSanitize,
@@ -19,6 +20,12 @@ const userRoute = function (app: any, express: any) {
     router.post(routerPath + "Guest", [guestSanitize, middleware(userSchema.guestSchema, "body")], (req: any, res: any) => {
         const task = (new UserController()).boot(req, res);
         return task.guest();
+    });
+
+    // Pre-login verification for Google/Apple OAuth & merge feasibility
+    router.post(routerPath + "CheckSocial", [checkSocialAccountSanitize, middleware(userSchema.checkSocialAccountSchema, "body")], (req: any, res: any) => {
+        const task = (new UserController()).boot(req, res);
+        return task.checkSocial();
     });
 
     // Google/Apple OAuth login
@@ -55,6 +62,12 @@ const userRoute = function (app: any, express: any) {
     router.post(routerPath + "Search", [Global.isAuthorized, checkUserActive, userSearchSanitize, middleware(userSchema.SearchUserSchema, "body")], (req: any, res: any) => {
         const task = (new UserController()).boot(req, res);
         return task.searchUser();
+    });
+
+    // Delete Account (iOS App Store Guideline 5.1.1(v) compliance)
+    router.delete(routerPath + "DeleteAccount", [Global.isAuthorized, checkUserActive], (req: any, res: any) => {
+        const task = (new UserController()).boot(req, res);
+        return task.deleteAccount();
     });
 
     app.use(configuration.baseApiUrl, router);

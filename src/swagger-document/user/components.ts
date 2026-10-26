@@ -42,6 +42,85 @@ const components = {
           type: 'string',
           description: 'Optional guest ID to link session data',
           example: 'device-uuid-12345'
+        },
+        mergeGuestChats: {
+          type: 'boolean',
+          description: 'Whether to merge guest chat history (default: true)',
+          example: true
+        }
+      }
+    },
+
+    checkSocialInput: {
+      type: 'object',
+      required: ['provider', 'socialId'],
+      properties: {
+        provider: {
+          type: 'string',
+          description: 'Social provider (google or apple)',
+          example: 'apple'
+        },
+        socialId: {
+          type: 'string',
+          description: 'OAuth social id identifier',
+          example: '001234.abcdef'
+        },
+        emailId: {
+          type: 'string',
+          description: 'OAuth user email address (if available from provider)',
+          example: 'user@example.com'
+        },
+        guestId: {
+          type: 'string',
+          description: 'Device guest ID currently in use',
+          example: 'device-uuid-12345'
+        }
+      }
+    },
+
+    checkSocialOutput: {
+      type: 'object',
+      properties: {
+        status: {
+          type: 'integer',
+          example: 1
+        },
+        message: {
+          type: 'string',
+          example: 'Social account verification completed.'
+        },
+        data: {
+          type: 'object',
+          properties: {
+            isExistingSocialUser: {
+              type: 'boolean',
+              example: false
+            },
+            isGuestUser: {
+              type: 'boolean',
+              example: true
+            },
+            guestAlreadyLinked: {
+              type: 'boolean',
+              example: false
+            },
+            hasGuestData: {
+              type: 'boolean',
+              example: true
+            },
+            guestConversationsCount: {
+              type: 'integer',
+              example: 3
+            },
+            canMerge: {
+              type: 'boolean',
+              example: true
+            },
+            suggestedAction: {
+              type: 'string',
+              example: 'PROMPT_MERGE_INTO_NEW'
+            }
+          }
         }
       }
     },
@@ -323,16 +402,17 @@ const components = {
         },
         orderBy: {
           type: 'array',
+          description: 'Sort ordering fields (defaults to descending order by userId if omitted or empty)',
           items: {
             type: 'object',
             properties: {
               key: {
                 type: 'string',
-                example: 'name'
+                example: 'userId'
               },
               orderType: {
                 type: 'string',
-                example: 'asc'
+                example: 'desc'
               }
             }
           }
@@ -373,6 +453,20 @@ const components = {
               example: 1
             }
           }
+        }
+      }
+    },
+
+    userCommonOutput: {
+      type: 'object',
+      properties: {
+        status: {
+          type: 'integer',
+          example: 1
+        },
+        message: {
+          type: 'string',
+          example: 'Your account and associated data have been deleted successfully.'
         }
       }
     }

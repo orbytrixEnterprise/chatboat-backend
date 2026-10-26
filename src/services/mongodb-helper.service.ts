@@ -126,7 +126,7 @@ export class MongoHelperService {
             const noOf = Number(body.noOf) || 10;
 
             const sort: any = {};
-            if (body.orderBy && Array.isArray(body.orderBy)) {
+            if (body.orderBy && Array.isArray(body.orderBy) && body.orderBy.length > 0) {
                 for (const item of body.orderBy) {
                     const schemaSortCol = options.sortFields[item.key] || item.key;
                     sort[schemaSortCol] = item.orderType === "desc" ? -1 : 1;

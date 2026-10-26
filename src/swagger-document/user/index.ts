@@ -3,12 +3,14 @@ import components from "./components";
 
 import {
     guestUser,
+    checkSocialUser,
     socialLoginUser,
     signupUser,
     loginUser,
     profileUser,
     updateProfileUser,
-    searchUser
+    searchUser,
+    deleteAccountUser
 } from "./api";
 
 const user = {
@@ -24,12 +26,14 @@ const user = {
 
     paths: {
         "/User/Guest": guestUser,
+        "/User/CheckSocial": checkSocialUser,
         "/User/SocialLogin": socialLoginUser,
         "/User/Signup": signupUser,
         "/User/Login": loginUser,
         "/User/Profile": profileUser,
         "/User/UpdateProfile": updateProfileUser,
-        "/User/Search": searchUser
+        "/User/Search": searchUser,
+        "/User/DeleteAccount": deleteAccountUser
     }
 
 };

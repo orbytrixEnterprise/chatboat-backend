@@ -13,7 +13,12 @@ const UserSchema = new Schema({
     userType: { type: String, enum: ["ADMIN", "USER"], default: "USER" },
     address: { type: String, default: "" },
     profileImage: { type: String, default: "" },
-    status: { type: String, enum: ["ACTIVE", "INACTIVE"], default: "ACTIVE" },
+    status: { type: String, enum: ["ACTIVE", "INACTIVE", "DELETED"], default: "ACTIVE" },
+    deletedAt: { type: Date },
+    originalEmail: { type: String },
+    originalAppleId: { type: String },
+    originalGoogleId: { type: String },
+    originalGuestId: { type: String },
     createdUpdatedBy: { type: Number, default: 0 },
     creatingDate: { type: Date, default: Date.now },
     updatingDate: { type: Date, default: Date.now }

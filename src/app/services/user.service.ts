@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { User, getNextSequenceValue } from "../model";
+import { User, Conversation, getNextSequenceValue } from "../model";
 import { MongoHelperService } from "../../services";
 import { Global } from "../../configs";
 
@@ -41,7 +41,7 @@ export class UserService {
      * Creates or gets a temporary guest user.
      */
     async createOrGetGuest(guestId: string) {
-        let user = await User.findOne({ guestId }).lean();
+        let user = await User.findOne({ guestId, status: { $ne: "DELETED" } }).lean();
         if (!user) {
             const userId = await getNextSequenceValue("userId");
             user = (await User.create({
@@ -55,9 +55,83 @@ export class UserService {
     }
 
     /**
+     * Pre-login check for Social Sign-In (Apple/Google).
+     * Determines whether the social account already exists, whether the guest session is eligible for merging,
+     * or if the guest ID has already been assigned to another account (preventing improper merges).
+     */
+    async checkSocialAccount(provider: string, socialId: string, emailId?: string, guestId?: string) {
+        const query: any = {};
+        if (provider === "google") {
+            query.googleId = socialId;
+        } else {
+            query.appleId = socialId;
+        }
+
+        const emailLower = emailId ? emailId.toLowerCase().trim() : "";
+
+        // 1. Check if an active account already exists with this social ID
+        let existingSocialUser = await User.findOne({ ...query, status: { $ne: "DELETED" } });
+
+        // 2. Check by email if not found by social ID
+        if (!existingSocialUser && emailLower) {
+            const legacyEncryptedEmail = await Global.encrypt(emailLower);
+            existingSocialUser = await User.findOne({
+                $or: [{ emailId: emailLower }, { emailId: legacyEncryptedEmail }],
+                status: { $ne: "DELETED" }
+            });
+        }
+
+        const isExistingSocialUser = !!existingSocialUser;
+
+        // 3. Inspect Guest Session
+        let isGuestUser = false;
+        let guestAlreadyLinked = false;
+        let hasGuestData = false;
+        let guestConversationsCount = 0;
+
+        if (guestId && guestId.trim().length > 0) {
+            const guestUser = await User.findOne({ guestId: guestId.trim(), status: { $ne: "DELETED" } });
+            if (guestUser) {
+                isGuestUser = true;
+                // If guestUser already has emailId, googleId, or appleId, it's permanently linked
+                guestAlreadyLinked = !!(guestUser.emailId || guestUser.googleId || guestUser.appleId);
+                guestConversationsCount = await Conversation.countDocuments({
+                    userId: guestUser.userId,
+                    status: { $ne: "ARCHIVED" }
+                });
+                hasGuestData = guestConversationsCount > 0;
+            }
+        }
+
+        // 4. Can merge evaluation:
+        // Merge is possible ONLY if:
+        // - Guest exists in database
+        // - Guest has NOT already been assigned to another social account (guestAlreadyLinked === false)
+        // - Guest has actual chat conversations or history (hasGuestData === true)
+        const canMerge = isGuestUser && !guestAlreadyLinked && hasGuestData;
+
+        let suggestedAction = "DIRECT_CREATE";
+        if (isExistingSocialUser) {
+            suggestedAction = canMerge ? "PROMPT_MERGE_INTO_EXISTING" : "DIRECT_LOGIN";
+        } else {
+            suggestedAction = canMerge ? "PROMPT_MERGE_INTO_NEW" : "DIRECT_CREATE";
+        }
+
+        return {
+            isExistingSocialUser,
+            isGuestUser,
+            guestAlreadyLinked,
+            hasGuestData,
+            guestConversationsCount,
+            canMerge,
+            suggestedAction
+        };
+    }
+
+    /**
      * Logs in or signs up a social OAuth user (Google/Apple) and links guest session if provided.
      */
-    async registerOrLinkSocial(provider: string, socialId: string, emailId: string, name: string, guestId?: string) {
+    async registerOrLinkSocial(provider: string, socialId: string, emailId: string, name: string, guestId?: string, mergeGuestChats: boolean = true) {
         const query: any = {};
         if (provider === "google") {
             query.googleId = socialId;
@@ -68,16 +142,33 @@ export class UserService {
         const emailLower = emailId.toLowerCase().trim();
         const encryptedName = name ? await Global.encrypt(name) : "";
 
-        // 1. Check if user already exists with this social ID
-        let user = await User.findOne(query);
+        // Helper to optionally merge guest conversations into an existing user
+        const mergeGuestDataIfRequested = async (targetUser: any) => {
+            if (guestId && mergeGuestChats !== false) {
+                const guestUser = await User.findOne({ guestId, status: { $ne: "DELETED" } });
+                if (guestUser && guestUser.userId !== targetUser.userId && !guestUser.emailId && !guestUser.googleId && !guestUser.appleId) {
+                    await Conversation.updateMany(
+                        { userId: guestUser.userId },
+                        { $set: { userId: targetUser.userId, updatingDate: new Date() } }
+                    );
+                    // Remove temporary guest user to prevent orphaned sessions
+                    await User.deleteOne({ _id: guestUser._id });
+                }
+            }
+        };
+
+        // 1. Check if user already exists with this social ID (ignoring deleted accounts)
+        let user = await User.findOne({ ...query, status: { $ne: "DELETED" } });
         if (user) {
+            await mergeGuestDataIfRequested(user);
             return await this.decryptUserData(user);
         }
 
-        // 2. Check if user already exists with this email address
+        // 2. Check if user already exists with this email address (ignoring deleted accounts)
         const legacyEncryptedEmail = await Global.encrypt(emailLower);
         user = await User.findOne({
-            $or: [{ emailId: emailLower }, { emailId: legacyEncryptedEmail }]
+            $or: [{ emailId: emailLower }, { emailId: legacyEncryptedEmail }],
+            status: { $ne: "DELETED" }
         });
         if (user) {
             // Link social provider to existing email account
@@ -91,12 +182,13 @@ export class UserService {
             }
             user.emailId = emailLower; // Store in real form
             await user.save();
+            await mergeGuestDataIfRequested(user);
             return await this.decryptUserData(user);
         }
 
-        // 3. Link to guest session if guestId is provided and exists
-        if (guestId) {
-            const guestUser = await User.findOne({ guestId });
+        // 3. Link to guest session if guestId is provided, merge is requested, and guest exists unlinked
+        if (guestId && mergeGuestChats !== false) {
+            const guestUser = await User.findOne({ guestId, status: { $ne: "DELETED" } });
             if (guestUser && !guestUser.emailId && !guestUser.googleId && !guestUser.appleId) {
                 guestUser.emailId = emailLower; // Store in real form
                 guestUser.name = encryptedName || guestUser.name;
@@ -110,7 +202,7 @@ export class UserService {
             }
         }
 
-        // 4. Create new user if not linked
+        // 4. Create new user if not linked or user chose not to merge
         const userId = await getNextSequenceValue("userId");
         const newUser = await User.create({
             userId,
@@ -134,18 +226,19 @@ export class UserService {
         const encryptedPassword = await Global.encrypt(data.password);
         const encryptedAddress = data.address ? await Global.encrypt(data.address) : "";
 
-        // 1. Check if email already registered
+        // 1. Check if email already registered (ignoring deleted accounts)
         const legacyEncryptedEmail = await Global.encrypt(emailLower);
         const existingEmail = await User.findOne({
-            $or: [{ emailId: emailLower }, { emailId: legacyEncryptedEmail }]
+            $or: [{ emailId: emailLower }, { emailId: legacyEncryptedEmail }],
+            status: { $ne: "DELETED" }
         });
         if (existingEmail && (existingEmail.password || existingEmail.googleId || existingEmail.appleId)) {
             throw new Error("Email address already registered.");
         }
 
-        // 2. Check if guestId is provided and link to it
+        // 2. Check if guestId is provided and link to it (ignoring deleted accounts)
         if (data.guestId) {
-            const guestUser = await User.findOne({ guestId: data.guestId });
+            const guestUser = await User.findOne({ guestId: data.guestId, status: { $ne: "DELETED" } });
             if (guestUser && !guestUser.emailId && !guestUser.googleId && !guestUser.appleId) {
                 guestUser.name = encryptedName;
                 guestUser.emailId = emailLower; // Store in real form
@@ -185,7 +278,8 @@ export class UserService {
             $or: [
                 { emailId: emailLower, password: encryptedPassword },
                 { emailId: legacyEncryptedEmail, password: encryptedPassword }
-            ]
+            ],
+            status: { $ne: "DELETED" }
         });
         if (user && user.status !== "ACTIVE") {
             throw new Error("Your account is currently inactive.");
@@ -197,7 +291,7 @@ export class UserService {
      * Finds a user by their userId.
      */
     async findById(userId: number) {
-        const user = await User.findOne({ userId }).lean();
+        const user = await User.findOne({ userId, status: { $ne: "DELETED" } }).lean();
         return user ? await this.decryptUserData(user) : null;
     }
 
@@ -226,7 +320,7 @@ export class UserService {
         }
 
         const updated = await User.findOneAndUpdate(
-            { userId },
+            { userId, status: { $ne: "DELETED" } },
             { $set: payload },
             { returnDocument: 'after' }
         ).lean();
@@ -234,10 +328,67 @@ export class UserService {
     }
 
     /**
+     * Soft deletes user account and archives their conversations.
+     * Unsets unique sparse index fields (appleId, googleId, guestId) and scrambles emailId
+     * so that the user can sign up again cleanly in the future with the exact same credentials.
+     */
+    async deleteAccount(userId: number) {
+        const user = await User.findOne({ userId, status: { $ne: "DELETED" } });
+        if (!user) {
+            throw new Error("User account not found or already deleted.");
+        }
+
+        const originalEmail = user.emailId || "";
+        const originalAppleId = user.appleId || "";
+        const originalGoogleId = user.googleId || "";
+        const originalGuestId = user.guestId || "";
+
+        // 1. Soft-delete the user and release unique sparse keys
+        await User.updateOne(
+            { userId },
+            {
+                $set: {
+                    status: "DELETED",
+                    deletedAt: new Date(),
+                    emailId: `deleted_${userId}_${Date.now()}@deleted.chatboat`,
+                    name: await Global.encrypt("Deleted User"),
+                    mobileNo: "",
+                    password: "",
+                    address: "",
+                    profileImage: "",
+                    originalEmail,
+                    originalAppleId,
+                    originalGoogleId,
+                    originalGuestId,
+                    updatingDate: new Date()
+                },
+                $unset: {
+                    appleId: 1,
+                    googleId: 1,
+                    guestId: 1
+                }
+            }
+        );
+
+        // 2. Archive all conversations belonging to this user
+        await Conversation.updateMany(
+            { userId },
+            { $set: { status: "ARCHIVED", updatingDate: new Date() } }
+        );
+
+        return true;
+    }
+
+    /**
      * Search users with pagination, filters and sorting.
      */
     async userSearch(body: any) {
         const searchBody = { ...body };
+
+        // Default to descending order (newest users first) if no orderBy is provided
+        if (!searchBody.orderBy || !Array.isArray(searchBody.orderBy) || searchBody.orderBy.length === 0) {
+            searchBody.orderBy = [{ key: "userId", orderType: "desc" }];
+        }
 
         if (searchBody.filter && Array.isArray(searchBody.filter)) {
             searchBody.filter = await Promise.all(searchBody.filter.map(async (f: any) => {
@@ -264,6 +415,7 @@ export class UserService {
             }),
             {
                 filterFields: {
+                    userId: "userId",
                     name: "name",
                     emailId: "emailId",
                     mobileNo: "mobileNo",
@@ -272,11 +424,13 @@ export class UserService {
                     adminId: "adminId"
                 },
                 sortFields: {
+                    userId: "userId",
                     name: "name",
                     emailId: "emailId",
                     mobileNo: "mobileNo",
                     userType: "userType",
-                    status: "status"
+                    status: "status",
+                    creatingDate: "creatingDate"
                 }
             }
         );

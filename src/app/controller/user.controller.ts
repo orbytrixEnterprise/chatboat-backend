@@ -52,12 +52,32 @@ export class UserController extends Controller {
     }
 
     /**
+     * Pre-login check for Social Sign-In (Apple/Google).
+     * Returns account existence, guest link status, and whether merge is permissible.
+     */
+    async checkSocial() {
+        try {
+            const { provider, socialId, emailId, guestId } = this.req.body;
+            const result = await new UserService().checkSocialAccount(provider, socialId, emailId, guestId);
+
+            return this.res.status(200).send({
+                status: 1,
+                message: "Social account verification completed.",
+                data: result
+            });
+        } catch (err: any) {
+            applicationLogger.error("UserController checkSocial", { body: this.req.body, error: err.toString() });
+            return this.res.status(500).send({ status: 0, message: response["100"], error: err.toString() });
+        }
+    }
+
+    /**
      * Google/Apple Social Sign-in & Merge Flow
      */
     async socialLogin() {
         try {
-            const { provider, socialId, emailId, name, guestId } = this.req.body;
-            const user = await new UserService().registerOrLinkSocial(provider, socialId, emailId, name, guestId);
+            const { provider, socialId, emailId, name, guestId, mergeGuestChats } = this.req.body;
+            const user = await new UserService().registerOrLinkSocial(provider, socialId, emailId, name, guestId, mergeGuestChats);
             const tokenResult = await this.generateUserTokens(user);
 
             return this.res.status(200).send({ status: 1, message: "Social login completed successfully.", data: tokenResult });
@@ -162,4 +182,29 @@ export class UserController extends Controller {
             return this.res.status(500).send({ status: 0, message: response["100"], error: err.toString() });
         }
     }
+
+    /**
+     * Delete user account (Soft delete conforming to App Store guidelines).
+     * Automatically invalidates active session, unlinks Apple/Google/Guest IDs to prevent index collisions,
+     * and archives chat conversations so the user can re-register freshly in the future.
+     */
+    async deleteAccount() {
+        try {
+            const userId = await Global.getTokenValue(this.req, "id");
+            if (!userId) {
+                return this.res.status(401).send({ status: 0, message: "Unauthorized user." });
+            }
+
+            await new UserService().deleteAccount(userId);
+
+            return this.res.status(200).send({
+                status: 1,
+                message: "Your account and associated data have been deleted successfully."
+            });
+        } catch (err: any) {
+            applicationLogger.error("UserController deleteAccount", { error: err.toString() });
+            return this.res.status(500).send({ status: 0, message: err.message || response["100"] });
+        }
+    }
 }
+

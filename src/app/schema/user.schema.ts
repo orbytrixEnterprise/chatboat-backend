@@ -38,6 +38,29 @@ export const userSchema = {
         guestId: joi.string().trim().allow("").required().messages({
             "string.base": `Guest ID must be a string.`,
             "any.required": `Guest ID is required.`
+        }),
+        mergeGuestChats: joi.boolean().optional()
+    }),
+
+    checkSocialAccountSchema: joi.object({
+        provider: joi.string().trim().valid("google", "apple").required().messages({
+            "string.base": `Provider must be a string.`,
+            "any.only": `Provider must be google or apple.`,
+            "any.required": `Provider is required.`
+        }),
+        socialId: joi.string().trim().required().messages({
+            "string.base": `Social ID must be a string.`,
+            "string.empty": `Social ID is required.`,
+            "any.required": `Social ID is required.`
+        }),
+        emailId: joi.string().trim().max(320).allow("").required().messages({
+            "string.base": `Email address must be a string.`,
+            "string.max": `Email address cannot exceed 320 characters.`,
+            "any.required": `Email address is required.`
+        }),
+        guestId: joi.string().trim().allow("").required().messages({
+            "string.base": `Guest ID must be a string.`,
+            "any.required": `Guest ID is required.`
         })
     }),
 
@@ -189,6 +212,19 @@ export const socialLoginSanitize = (req: any, res: any, next: any) => {
     next();
 };
 
+export const checkSocialAccountSanitize = (req: any, res: any, next: any) => {
+    if (req.body.emailId === undefined || req.body.emailId === null) { req.body.emailId = ""; }
+    if (req.body.guestId === undefined || req.body.guestId === null) { req.body.guestId = ""; }
+
+    const fields = ["provider", "socialId", "emailId", "guestId"];
+    for (const f of fields) {
+        if (FieldHelperService.undefinedAndNullCheck(req.body[f])) {
+            req.body[f] = decode(req.sanitize(req.body[f] + ""));
+        }
+    }
+    next();
+};
+
 export const signupSanitize = (req: any, res: any, next: any) => {
     if (req.body.mobileNo === undefined || req.body.mobileNo === null) {req.body.mobileNo = "";}
     if (req.body.guestId === undefined || req.body.guestId === null) {req.body.guestId = "";}
@@ -237,7 +273,9 @@ export const userSearchSanitize = (req: any, res: any, next: any) => {
     if (req.body.page === undefined || req.body.page === null) {req.body.page = 1;}
     if (req.body.noOf === undefined || req.body.noOf === null) {req.body.noOf = 10;}
     if (req.body.filter === undefined || req.body.filter === null) {req.body.filter = [];}
-    if (req.body.orderBy === undefined || req.body.orderBy === null) {req.body.orderBy = [];}
+    if (req.body.orderBy === undefined || req.body.orderBy === null || (Array.isArray(req.body.orderBy) && req.body.orderBy.length === 0)) {
+        req.body.orderBy = [{ key: "userId", orderType: "desc" }];
+    }
 
     const fields = ["name", "emailId", "mobileNo", "userType", "status", "search", "page", "noOf"];
     for (const f of fields) {
