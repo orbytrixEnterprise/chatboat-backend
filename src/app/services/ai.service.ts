@@ -172,7 +172,7 @@ export class AIService {
                 if (isRateLimit) {
                     // Set 45-second adaptive cooldown so next user chats are routed to other available keys immediately
                     rateLimitCooldowns.set(keyIdentifier, Date.now() + 45000);
-                    applicationLogger.warn("AIService Key Rate-Limited (429), dynamic load balancer shifting to next provider...", {
+                    applicationLogger.error("AIService Key Rate-Limited (429), dynamic load balancer shifting to next provider...", {
                         provider: keyConfig.provider,
                         keyId: keyConfig.keyId
                     });

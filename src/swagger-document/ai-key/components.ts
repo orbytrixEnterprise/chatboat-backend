@@ -7,8 +7,8 @@ const components = {
       properties: {
         provider: {
           type: 'string',
-          description: 'AI provider (grok, openai, gemini, or claude)',
-          example: 'grok'
+          description: 'AI provider (grok, openai, gemini, claude, openrouter, or groq)',
+          example: 'groq'
         },
         apiKey: {
           type: 'string',
